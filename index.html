@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>
+            Calculator
+        </title>
+
+        <link rel="apple-touch-icon" sizes="180x180" href="Documents/apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="Documents/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="Documents/favicon-16x16.png">
+        <link rel="manifest" href="Documents/site.webmanifest">
+        <link rel="mask-icon" href="Documents/safari-pinned-tab.svg" color="#5bbad5">
+        <meta name="msapplication-TileColor" content="#da532c">
+        <meta name="theme-color" content="#ffffff">
+
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <script src="CalcScript.js" defer></script>
+        <link rel="stylesheet" href="CalcStyles.css">
+    </head>
+    <body>
+        <div style="padding-bottom: 5px;">
+            <a href="https://mr-ferreira.com">
+                <img alt="siteIcon" src="Documents/icon.png" id="siteIcon">
+            </a>
+        </div>
+        <form action="">
+            <div class="customBorder" id="calc">
+                <div id="displayAndSideButtons">
+                    <div>
+                        <textarea type="text" id="display" readonly>0</textarea>
+                        <textarea type="text" id="answerDisplay" readonly>= </textarea>
+                    </div>
+                    <div>
+                        <button type="button" onclick="read(event);buttonClick(event);" id="backspace">⌫</button>
+                        <button type="button" onclick="calcHistory(event);buttonClick(event);" id="showHistory">Hist</button>
+                    </div>
+                </div>
+                <div id="buttonContainer">
+                    <table id="numPad"> 
+                        <tr>
+                            <td>
+                                <button type="button" onclick="read(event);buttonClick(event);">C</button>
+                            </td>
+                                
+                            <td>
+                                <button type="button" onclick="read(event);buttonClick(event);">( )</button>
+                            </td>
+            
+                            <td>
+                                <button type="button" onclick="read(event);buttonClick(event);">%</button>
+                            </td>
+            
+                            <td>
+                                <button type="button" onclick="read(event);buttonClick(event);">&divide;</button>
+                                
+                            </td>
+                        </tr>
+                            
+                        <tr>
+                            <td>
+                                <button type="button" onclick="read(event);buttonClick(event);">7</button>
+                            </td>
+            
+                            <td>
+                                <button type="button" onclick="read(event);buttonClick(event);">8</button>
+                            </td>
+            
+                            <td>
+                                <button type="button" onclick="read(event);buttonClick(event);">9</button>
+                            </td>
+            
+                            <td>
+                                <button type="button" onclick="read(event);buttonClick(event);">x</button>
+                            </td>
+                        </tr>
+            
+                        <tr>
+                            <td>
+                                <button type="button" onclick="read(event);buttonClick(event);">4</button>
+                            </td>
+            
+                            <td>
+                                <button type="button" onclick="read(event);buttonClick(event);">5</button>
+                            </td>
+            
+                            <td>
+                                <button type="button" onclick="read(event);buttonClick(event);">6</button>
+                            </td>
+            
+                            <td>
+                                <button type="button" onclick="read(event);buttonClick(event);">‑</button>
+                            </td>
+                        </tr>
+            
+                        <tr>
+                            <td>
+                                <button type="button" onclick="read(event);buttonClick(event);">1</button>
+                            </td>
+            
+                            <td>
+                                <button type="button" onclick="read(event);buttonClick(event);">2</button>
+                            </td>
+            
+                            <td>
+                                <button type="button" onclick="read(event);buttonClick(event);">3</button>
+                            </td>
+            
+                            <td>
+                                <button type="button" onclick="read(event);buttonClick(event);">+</button>
+                            </td>
+                        </tr>
+            
+                        <tr>
+                            <td>
+                                <button type="button" onclick="read(event);buttonClick(event);">+/-</button>
+                            </td>
+            
+                            <td>
+                                <button type="button" onclick="read(event);buttonClick(event);">0</button>
+                            </td>
+            
+                            <td>
+                                <button type="button" onclick="read(event);buttonClick(event);">.</button>
+                            </td>
+            
+                            <td>
+                                <button type="button" onclick="read(event);buttonClick(event);">=</button>
+                            </td>
+                        </tr>
+                    </table>
+                    <div id="histContainer" class="customBorder">
+                        <div id="histTitle">
+                            History
+                        </div>
+                        <button type="button" onclick="calcHistory(event);buttonClick(event);" id="clearHistory">Clear</button>
+                        <br>
+                        <div id="listContainer">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <br>
+        <br>
+        <div id="footnote">
+            Made by <a href="https://mr-ferreira.com" target="_blank">Matheus 
+                Ferreira</a>
+            <br>
+            <br>
+            <a href="https://github.com/Mr-Ferreira/Mr-Ferreira.github.io/blob/main/Calc/CalcScript.js" target="_blank">See Sourcecode</a>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,135 @@
+body {
+    background-color: rgb(197, 233, 197);
+}
+.customBorder {
+    border: 2px solid rgb(0, 0, 0);
+    border-radius: 2%;
+    padding: 10px;
+    background-color: rgb(89, 95, 92);
+}
+button {
+    background-color: rgb(255, 255, 255);
+    width: 80px;
+    height: 80px;
+    border-style: outset;
+    border-width: 5px;
+    border-color: rgb(206, 206, 206);
+    font-size: 40px;
+}
+#siteIcon {
+    position: relative;
+    width: 50px;
+}
+#calc {
+    display: block;
+    position: relative;
+    text-align: center;
+    max-width: 410px;
+    min-width: 410px;
+    min-height: 585px;
+    max-height: 585px;
+    margin: auto;
+}
+::placeholder {
+    color: black;
+}
+#display {
+    text-wrap: nowrap;
+    bottom: 10px;
+    min-width: 340px;
+    resize: none;
+    min-height: 100px;
+    font-size: 30px;
+    text-align: right;
+    border: 2px solid;
+    border-bottom: none;
+    font-family: Arial, Helvetica, sans-serif;
+}
+#answerDisplay {
+    position: relative;
+    text-wrap: nowrap;
+    min-width: 340px;
+    resize: none;
+    min-height: 40px;
+    max-height: 40px;
+    font-size: 30px;
+    text-align: right;
+    border: 2px solid;
+    border-top: none;
+    font-family: Arial, Helvetica, sans-serif;
+    bottom: 4px;
+}
+#footnote {
+    position: relative;
+    bottom: 0;
+    width: 100%;
+    text-align: center;
+    font-size: larger;
+}
+#displayAndSideButtons {
+    display: flex;
+    align-items: center;
+    position: relative;
+    width: 100%;
+}
+#backspace {
+    position: relative;
+    bottom: 39px;
+    left: 4px;
+    width: 60px;
+    height: 40px;
+    font-size: 20px;
+}
+li {
+    position: relative;
+    top: 20px;
+    margin-bottom: 2px;
+    list-style-type: none;
+    width: min-content;
+    height: min-content;
+}
+#listedHistory {
+    font-size: 20px;
+    height:min-content;
+    width: min-content;
+    border: 1px solid rgb(255, 255, 255);
+}
+#showHistory {
+    display: block;
+    position: relative;
+    width: 60px;
+    height: 40px;
+    top: 30px;
+    left: 4px;
+    font-size: 21px;
+}
+#numPad {
+    position: relative;
+    left: 25px;
+}
+#clearHistory {
+    position: absolute;
+    right: 10px;
+    width: 83px;
+    height: 33px;
+    font-size: 20px;
+}
+#histTitle {
+    position: absolute;
+    font-size: 27px;
+    font-weight: bold;
+    font-family: 'Arial Narrow', Arial, sans-serif;
+    width: fit-content;
+    text-decoration: underline;
+}
+#histContainer {
+    display: none;
+    position: relative;
+    left: 25px;
+    width: 320px;
+    height: 400px;
+    overflow: scroll;
+    font-size: larger;
+    background-color: rgb(211, 211, 211);
+    overflow-x: hidden;
+}
