@@ -73,7 +73,7 @@ function read(event) {
                     break
                 }
             }
-            formula = formula + lastOperation
+            formula = formula + "\n" + lastOperation
         }
         let preFormula = formula
         formula = calculate(parse(formula))
@@ -287,6 +287,8 @@ function read(event) {
     else
         preCalc(formula)
     lastTrigger = trigger
+    let display = document.getElementById('display')
+    display.scrollTop = display.scrollHeight
 }
 
 // History container button functionalities
@@ -294,6 +296,8 @@ function calcHistory(event) {
     let trigger = event.srcElement.innerHTML
     if (trigger == "Hist") {
         document.getElementById('histContainer').style.display = "block"
+        let histList = document.getElementById('listContainer')
+        histList.scrollTop = histList.scrollHeight
         document.getElementById('numPad').style.display = "none"
         document.getElementById("showHistory").innerHTML = "+/-"
     }
@@ -362,8 +366,6 @@ function appendHistory (string) {
     button.appendChild(text)
     list.appendChild(button)
     container.appendChild(list)
-
-    container.scrollTop = container.scrollHeight
 }
 
 // Animates buttons when clicked
@@ -765,15 +767,17 @@ function fancy (formula) {
         else
             unbrokenChars = 0;
 
-        if (unbrokenChars > 20) {
+        if (unbrokenChars > 19) {
             for (let j = i; j >= 0; j--) {
                 if (typeId(formula[j]) == 0 || formula[j] == "(" || formula[j] == ")") {
                     if (j != 0) {
-                        formula = formula.slice(0, j) + "\n" + formula.slice(j);
-                        i--;
-                        length++;
-                        unbrokenChars = 0;
-                        break;
+                        if (formula[j - 1] != "\n") {
+                            formula = formula.slice(0, j) + "\n" + formula.slice(j);
+                            i--;
+                            length++;
+                            unbrokenChars = 0;
+                            break;
+                        }
                     }
                 }
             }
