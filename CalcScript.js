@@ -242,7 +242,7 @@ function read(event) {
         else {
             let naturalNumOrDecimal = false;
             for (let i = length - 1; i >= 0; i--) {
-                if (formula[i] == "." || parseInt(formula[i]) > 0){
+                if (formula[i] == "." || Number(formula[i]) > 0){
                     naturalNumOrDecimal = true;
                     break;
                 }
@@ -258,6 +258,12 @@ function read(event) {
                     if (i > 0) {
                         if (formula[i - 1] != "e")
                             break;
+                        else {
+                            digitCount = 0
+                            decDigitCount = 0
+                            i--
+                            continue
+                        }
                     }
                     else
                         break;
@@ -270,6 +276,8 @@ function read(event) {
                     continue;
                 if (typeId(formula[i]) == 1)
                     digitCount++;
+                if (decDigitCount >= 10 || digitCount >= 15)
+                    break
             }
             if (length > 1 && formula[length - 1] == "0" && typeId(formula[length - 2]) == 0 && trigger == "0")
                 return;
@@ -477,8 +485,8 @@ function parse (formula) {
             else if (formula[i] == "," || formula[i] == "\n") 
                 continue;
             else if (formula[i] == "e") {
-                parsedFormula[parsedFormulaIndex] = parsedFormula[parsedFormulaIndex] + "e" + formula[i + 1];
-                i++;
+                parsedFormula[parsedFormulaIndex] = parsedFormula[parsedFormulaIndex] + "e" + formula[i + 1] + formula[i + 2];
+                i+=2;
             }
             else if ((typeId(parsedFormula[parsedFormulaIndex]) == 1))
                 parsedFormula[parsedFormulaIndex] = parsedFormula[parsedFormulaIndex] + formula[i];
@@ -570,8 +578,8 @@ function calculate (formula) {
     for (let i = 0; i < length; i++) {
         if ((formula[i] == "*" || formula[i] == "/") && i != (length - 1)) {
             let localCalc = 0;
-            let num1 = parseFloat(precision(formula[i - 1]))
-            let num2 = parseFloat(precision(formula[i + 1]))
+            let num1 = Number(precision(formula[i - 1]))
+            let num2 = Number(precision(formula[i + 1]))
             if (formula[i] == "*")
                 localCalc = num1 * num2;
             else {
@@ -591,7 +599,7 @@ function calculate (formula) {
     let sum = false;
     let sub = false;
     for (let i = 0; i < length; i++) {
-        let num = parseFloat(precision(formula[i]))
+        let num = Number(precision(formula[i]))
         if (!isNaN(num)) {
             if (sum || i == 0) {
                 calculation = calculation + num;
@@ -601,7 +609,7 @@ function calculate (formula) {
                 calculation = calculation - num;
                 sub = false;
             }
-            calculation = parseFloat(precision(calculation.toString()));
+            calculation = Number(precision(calculation.toString()));
         }
         else if (formula[i] == "+") 
             sum = true;
@@ -620,7 +628,6 @@ function precision(num) {
 
     // Counts number of digits after the decimal
     let dec = false;
-    let digitCount = 0;
     let decDigitCount = 0;
     let nonZeroDecDigitCount = 0;
     let nonZeroIndex = -1;
@@ -657,18 +664,24 @@ function precision(num) {
     }
 
     let eQuantity = "";
-    if (eIndex != -1) 
+    if (eIndex != -1) {
         eQuantity = num.slice(eIndex);
+        if (eQuantity[1] == "‑") {
+            eQuantity = "e-" + eQuantity.slice(2)
+            num = num.slice(0, eIndex) + eQuantity
+        }    
+    }
+        
     
     if (tempNum != "") {
-        if (parseInt(tempNum[tempNum.length - 1]) > 4){
+        if (Number(tempNum[tempNum.length - 1]) > 4){
             let newVal = tempNum.slice(nonZeroIndex)
             let preRoundLen = 0
             let postRoundLen = 0
             tempNum = tempNum.slice(0, (decIndex + 1))
             
             preRoundLen = newVal.length;
-            newVal = parseInt(newVal) + 1;
+            newVal = Number(newVal) + 1;
             newVal = newVal.toString();
             postRoundLen = newVal.length;
     
@@ -676,9 +689,9 @@ function precision(num) {
             if (newVal.length > 11) {
                 newVal = "";
                 if (tempNum[0] == "‑")
-                    tempNum = parseInt(tempNum) - 1;
+                    tempNum = Number(tempNum) - 1;
                 else
-                    tempNum = parseInt(tempNum) + 1;
+                    tempNum = Number(tempNum) + 1;
                 tempNum = tempNum.toString();
             }
             else if (postRoundLen > preRoundLen) {
@@ -696,15 +709,15 @@ function precision(num) {
     }
 
 
-
+    let digitCount = 0;
     for (let i = 0; i < length; i++) {
-        if (!isNaN(parseInt(num[i])))
+        if (!isNaN(Number(num[i])))
             digitCount++
     }
     if (decIndex != -1 && digitCount > 15 && eIndex == -1) {
         let i = length - 1
         while (digitCount > 15) {
-            if (!isNaN(parseInt(num[i]))) {
+            if (!isNaN(Number(num[i]))) {
                 num = num.slice(0, (length - 1))
                 length --
                 digitCount--
@@ -722,9 +735,9 @@ function precision(num) {
         }
         num = num.slice(0, 10)
         if (num[9] > 4) 
-            num = parseInt(num.slice(0, 9)) + 1;
+            num = Number(num.slice(0, 9)) + 1;
         else 
-            num = parseInt(num.slice(0, 9))
+            num = Number(num.slice(0, 9))
         num = num.toString()
         num = num.slice(0, 1) + "." + num.slice(1) + "e+" + (digitCount - 1).toString()
         if (negSign == true)
@@ -736,7 +749,7 @@ function precision(num) {
 // Returns 0 if value is a mathematical operator, 1 if it's a number/misc syntax, and -1 if it's neither.
 function typeId (value) {
     if (value != undefined) {
-        if (!isNaN(parseFloat(value)) || value == "%" || value == "." || value == "," || value == "e")
+        if (!isNaN(Number(value)) || value == "%" || value == "." || value == "," || value == "e")
             return 1;
     }
     let operators = ["x", "+", "‑", "÷", "/", "-"]
