@@ -485,7 +485,10 @@ function parse (formula) {
             else if (formula[i] == "," || formula[i] == "\n") 
                 continue;
             else if (formula[i] == "e") {
-                parsedFormula[parsedFormulaIndex] = parsedFormula[parsedFormulaIndex] + "e" + formula[i + 1] + formula[i + 2];
+                if (formula[i + 1] == "‑")
+                    parsedFormula[parsedFormulaIndex] = parsedFormula[parsedFormulaIndex] + "e-" + formula[i + 2];
+                else
+                    parsedFormula[parsedFormulaIndex] = parsedFormula[parsedFormulaIndex] + "e" + formula[i + 1] + formula[i + 2];
                 i+=2;
             }
             else if ((typeId(parsedFormula[parsedFormulaIndex]) == 1))
@@ -664,14 +667,8 @@ function precision(num) {
     }
 
     let eQuantity = "";
-    if (eIndex != -1) {
+    if (eIndex != -1)
         eQuantity = num.slice(eIndex);
-        if (eQuantity[1] == "‑") {
-            eQuantity = "e-" + eQuantity.slice(2)
-            num = num.slice(0, eIndex) + eQuantity
-        }    
-    }
-        
     
     if (tempNum != "") {
         if (Number(tempNum[tempNum.length - 1]) > 4){
