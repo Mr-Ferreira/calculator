@@ -418,6 +418,10 @@ function parse (formula) {
                     }
                     if (percentageOperatorIndex != "pendingOpen"){
                         if (typeId(formula[j]) == 0 && percentageOperatorIndex == -1) {
+                            if (j > 0) {
+                                if (formula[j - 1] == "e")
+                                    continue
+                            }
                             if (formula[j] == "+" || formula[j] == "‑") {
                                 percentageOperatorIndex = j
                                 if (formula[j] == "‑" && j > 0){
@@ -446,7 +450,7 @@ function parse (formula) {
                     if (formula[i + 1] == "x" || formula[i + 1] == "÷")
                         percentageOperatorIndex = -1
                 }
-                if (percentageOperatorIndex != -1)
+                if (percentageOfFormula != "")
                     percentageOfFormula = calculate(parse(percentageOfFormula))
                 next()
                 if (parsedFormula[parsedFormulaIndex - 1] == ")") {
@@ -475,7 +479,7 @@ function parse (formula) {
                 parsedFormula[parsedFormulaIndex] = "100";
                 next();
                 parsedFormula[parsedFormulaIndex] = ")";
-                if (percentageOperatorIndex != -1 && percentageOfFormula != "ERROR") {
+                if (percentageOfFormula != "" && percentageOfFormula != "ERROR") {
                     next()
                     parsedFormula[parsedFormulaIndex] = "*";
                     next()
