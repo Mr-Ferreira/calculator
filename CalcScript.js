@@ -1,22 +1,25 @@
-// trigger function that designates the formula set-up based on button input.
 let lastTrigger = ""
 let modifiedOutput = undefined
 let lastOperation = ""
+let formula = "0"
 
+function reset() {
+    lastTrigger = ""
+    modifiedOutput = undefined
+    formula = "0"
+    lastOperation = ""
+}
+
+// trigger function that designates the formula set-up based on button input.
 function read(event) {
     let trigger = ""
     if (event.srcElement == undefined) 
         trigger = event
     else
         trigger = event.srcElement.innerHTML
-    let formula = document.querySelector('#display').value
+    formula = document.querySelector('#display').value
     let length = formula.length
-    function reset() {
-        lastTrigger = ""
-        modifiedOutput = undefined
-        formula = "0"
-        lastOperation = ""
-    }
+    
     if (trigger != "=" && modifiedOutput == false)
         modifiedOutput = true
     else if (trigger != "=" && modifiedOutput == true)
@@ -320,11 +323,15 @@ function calcHistory(event) {
             container.removeChild(container.children[0])
     }
     else {
-        if (trigger[0] == "=")
-            trigger = trigger.slice(1)
-        let triggerLen = trigger.length
-        for (let i = 0; i < triggerLen; i++)
-            read(trigger[i])
+        if (trigger[0] == "=") {
+            document.querySelector('#display').value = document.querySelector('#display').value + trigger.slice(1)
+            preCalc(document.querySelector('#display').value)
+        }
+        else {
+            document.querySelector('#display').value = document.querySelector('#display').value + trigger
+            preCalc(document.querySelector('#display').value)
+        }
+        reset()
     }
 }
 
@@ -762,7 +769,7 @@ function typeId (value) {
     return -1;
 }
 
-// Adds commas for every 3 integer digits, adds line breaks, fixes hyphens
+// Adds commas for every 3 integer digits, adds/removes line breaks, fixes hyphens
 function fancy (formula) {
     length = formula.length;
     if (formula[length - 1] == "\n") 
@@ -784,6 +791,10 @@ function fancy (formula) {
         if (unbrokenChars > 19) {
             for (let j = i; j >= 0; j--) {
                 if (typeId(formula[j]) == 0 || formula[j] == "(" || formula[j] == ")") {
+                    if (typeId(formula[j]) == 0 && j > 0) {
+                        if (formula[j - 1] == "e")
+                            continue
+                    }
                     if (j != 0) {
                         if (formula[j - 1] != "\n") {
                             formula = formula.slice(0, j) + "\n" + formula.slice(j);
@@ -797,7 +808,6 @@ function fancy (formula) {
             }
         }
     }
-    
     
     length = formula.length;
     let nonFancy = ""
