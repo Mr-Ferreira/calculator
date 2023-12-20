@@ -331,13 +331,12 @@ function calcHistory(event) {
             container.removeChild(container.children[0])
     }
     else {
-        if (document.querySelector('#display').value == "0")
-            document.querySelector('#display').value = ""
-        if (trigger[0] == "=") {
-            document.querySelector('#display').value = document.querySelector('#display').value + trigger.slice(1)
-            preCalc(document.querySelector('#display').value)
-        }
-        else {
+        if (trigger[0] == "=")
+            trigger = trigger.slice(1)
+        let display = document.querySelector('#display').value
+        if (trigger != "0" && trigger != "Infinity" && trigger != "‑Infinity") {
+            if (display == "0" || display == "ERROR" || display == "Infinity" || display == "‑Infinity")
+                document.querySelector('#display').value = ""
             document.querySelector('#display').value = document.querySelector('#display').value + trigger
             preCalc(document.querySelector('#display').value)
         }
