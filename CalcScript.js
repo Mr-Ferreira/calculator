@@ -173,7 +173,7 @@ function read(event) {
         }  
     }
     else if (trigger == "%") {
-        if (formula != "0" && formula != "‑") {
+        if (formula != "0" && typeId(formula[length - 1]) != 0) {
             if (formula[length - 1] == ".")
                 formula = formula.slice(0, (length - 1)) + trigger
             if (length != 0 && typeId(lastTrigger) != 0 && formula[length - 1] != "%" && formula[length - 1] != "(")
@@ -219,9 +219,9 @@ function read(event) {
                     else
                         formula = formula.slice(0, (length - 1)) + trigger;
                 }
-                else if ((trigger == "÷" || trigger == "x") && formula[length - 2] == "(")
-                    formula = formula.slice(0, (length - 1));
-                else
+                else if (trigger == "+" || trigger == "‑")
+                    formula = formula.slice(0, (length - 1)) + trigger;
+                else if ((trigger == "÷" || trigger == "x") && formula[length - 2] != "(")
                     formula = formula.slice(0, (length - 1)) + trigger;
             }
             else {
