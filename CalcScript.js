@@ -173,7 +173,7 @@ function read(event) {
         }  
     }
     else if (trigger == "%") {
-        if (formula != "0") {
+        if (formula != "0" && formula != "‑") {
             if (formula[length - 1] == ".")
                 formula = formula.slice(0, (length - 1)) + trigger
             if (length != 0 && typeId(lastTrigger) != 0 && formula[length - 1] != "%" && formula[length - 1] != "(")
