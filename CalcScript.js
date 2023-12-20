@@ -28,7 +28,7 @@ function read(event) {
     if (trigger == "C")
         reset()
     else if (trigger == "⌫") {
-        if (formula == "ERROR" || formula == "Infinity" || formula == "-Infinity")
+        if (formula == "ERROR" || formula == "Infinity" || formula == "‑Infinity")
             reset();
         else {
             formula = formula.slice(0, (length - 1));
@@ -37,7 +37,7 @@ function read(event) {
                 reset();
         }
     }
-    else if (formula == "ERROR" || formula == "Infinity" || formula == "-Infinity") 
+    else if (formula == "ERROR" || formula == "Infinity" || formula == "‑Infinity") 
         return
     else if (trigger == "=") {
         length = formula.length
@@ -626,7 +626,7 @@ function calculate (formula) {
         }
         else if (formula[i] == "+") 
             sum = true;
-        else if (formula[i] == "‑") 
+        else if (formula[i] == "‑" || formula[i] == "-") 
             sub = true; 
     }
     return precision(calculation.toString());
@@ -695,7 +695,7 @@ function precision(num) {
             
             if (newVal.length > 11) {
                 newVal = "";
-                if (tempNum[0] == "‑")
+                if (tempNum[0] == "‑" || tempNum[0] == "-")
                     tempNum = Number(tempNum) - 1;
                 else
                     tempNum = Number(tempNum) + 1;
@@ -736,7 +736,7 @@ function precision(num) {
     }
     if (digitCount > 15 && eIndex == -1) {
         let negSign = false
-        if (num[0] == "-") {
+        if (num[0] == "-" || num[0] == "‑") {
             negSign = true
             num = num.slice(1)
         }
@@ -830,7 +830,7 @@ function fancy (formula) {
     let nonFancyLen = nonFancy.length;
     
 
-    if (nonFancyLen > 0 && nonFancy != "0" && formula != "ERROR" && formula != "Infinity" && formula != "-Infinity") {
+    if (nonFancyLen > 0 && nonFancy != "0" && formula != "ERROR" && formula != "Infinity" && formula != "‑Infinity") {
         let fancy = "";
         for (let i = nonFancyLen - 4; i >= 0; i = i - 3) {
             if (i == nonFancyLen - 4) 
