@@ -173,10 +173,12 @@ function read(event) {
         }  
     }
     else if (trigger == "%") {
-        if (formula[length - 1] == ".")
-            formula = formula.slice(0, (length - 1)) + trigger;
-        if (length != 0 && typeId(lastTrigger) != 0 && formula[length - 1] != "%" && formula[length - 1] != "(")
-            formula = formula + "%";
+        if (formula != "0") {
+            if (formula[length - 1] == ".")
+                formula = formula.slice(0, (length - 1)) + trigger
+            if (length != 0 && typeId(lastTrigger) != 0 && formula[length - 1] != "%" && formula[length - 1] != "(")
+                formula = formula + "%"
+        }
     }
     else if (trigger == ".") {
         if (modifiedOutput == true)
@@ -207,31 +209,35 @@ function read(event) {
             formula = formula + ".";
     }
     else if (typeId(trigger) == 0) {
-        if (formula[length - 1] == "(") {
-            formula = formula;
-            if (typeId(lastTrigger) == -1 && length > 0 && trigger == "‑")
-                formula = formula + trigger;
-        }
-        else if (typeId(lastTrigger) == 0) {
-            if ((trigger == "+" || trigger == "‑") && formula[length - 2] == "(") {
-                if (trigger == "+" && formula[length - 1] == "‑")
+        if (formula != "0") {
+            if (formula[length - 1] == "(") {
+                formula = formula;
+                if (typeId(lastTrigger) == -1 && length > 0 && trigger == "‑")
+                    formula = formula + trigger;
+            }
+            else if (typeId(lastTrigger) == 0) {
+                if ((trigger == "+" || trigger == "‑") && formula[length - 2] == "(") {
+                    if (trigger == "+" && formula[length - 1] == "‑")
+                        formula = formula.slice(0, (length - 1));
+                    else
+                        formula = formula.slice(0, (length - 1)) + trigger;
+                }
+                else if ((trigger == "÷" || trigger == "x") && formula[length - 2] == "(")
                     formula = formula.slice(0, (length - 1));
                 else
                     formula = formula.slice(0, (length - 1)) + trigger;
             }
-            else if ((trigger == "÷" || trigger == "x") && formula[length - 2] == "(")
-                formula = formula.slice(0, (length - 1));
-            else
-                formula = formula.slice(0, (length - 1)) + trigger;
+            else {
+                if (formula[length - 1] == ".")
+                    formula = formula.slice(0, length - 1) + trigger;
+                else if (formula[length - 1] == "(" && trigger == "+")
+                    return;
+                else
+                    formula = formula + trigger;
+            } 
         }
-        else {
-            if (formula[length - 1] == ".")
-                formula = formula.slice(0, length - 1) + trigger;
-            else if (formula[length - 1] == "(" && trigger == "+")
-                return;
-            else
-                formula = formula + trigger;
-        } 
+        else if (trigger == "‑")
+            formula = "‑"
     }
     else if (typeId(trigger) == 1 && length > 1 && (formula[length - 1] == "%" || formula[length - 1] == ")"))
         formula = formula + "x" + trigger
@@ -532,18 +538,7 @@ function parse (formula) {
             }  
         } 
     }
-    parsedFormulaLen = parsedFormula.length;
-    for (let i = 0; i < parsedFormulaLen; i++) {
-        parsedFormulaLen = parsedFormula.length;
-        if (parsedFormula[i] == "/" && parsedFormula[i - 1] != ")" && parsedFormula[i + 1] != "(" && parsedFormula[i - 1] != parsedFormula[i + 1]) {
-            parsedFormula.splice((i - 1), 0, "(");
-            if (i < (parsedFormulaLen - 2)) 
-                parsedFormula.splice((i + 3), 0, ")");
-            else 
-                parsedFormula.push(")");
-            i++; 
-        }
-    }
+    //
     let sumLeft = 0;
     let sumRight = 0;
     parsedFormulaLen = parsedFormula.length;
