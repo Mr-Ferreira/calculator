@@ -246,48 +246,50 @@ function read(event) {
             let naturalNumOrDecimal = false;
             for (let i = length - 1; i >= 0; i--) {
                 if (formula[i] == "." || Number(formula[i]) > 0){
-                    naturalNumOrDecimal = true;
-                    break;
+                    naturalNumOrDecimal = true
+                    break
                 }
             }
 
             if (trigger == "0" && naturalNumOrDecimal == false && formula[length - 1] == "0")
-                return;
+                return
 
-            let digitCount = 0;
-            let decDigitCount = 0;
+            // Counts the digits in the last number in the formula
+            let digitCount = 0
+            let integerDigitCount = 0
+            // eDigitCount set to -1 to offset cases where e is the last element in the formula
+            let eDigitCount = -1
             for (let i = length - 1; i >= 0; i--) {
                 if (typeId(formula[i]) == 0) {
                     if (i > 0) {
                         if (formula[i - 1] != "e")
-                            break;
+                            break
                         else {
-                            digitCount = 0
-                            decDigitCount = 0
                             i--
+                            eDigitCount = digitCount
                             continue
                         }
                     }
                     else
-                        break;
+                        break
                 }  
-                else if (formula[i] == ".") {
-                    decDigitCount = digitCount;
-                    continue;
+                else if (formula[i] == "." && eDigitCount == -1) {
+                    integerDigitCount = digitCount
+                    continue
                 }
-                else if (formula[i] == ",")
-                    continue;
+                else if (formula[i] == "," || formula[i] == ".")
+                    continue
                 if (typeId(formula[i]) == 1)
-                    digitCount++;
-                if (decDigitCount >= 10 || digitCount >= 15)
+                    digitCount++
+                if (integerDigitCount >= 10 || digitCount >= 15 || eDigitCount >= 3)
                     break
             }
             if (length > 1 && formula[length - 1] == "0" && typeId(formula[length - 2]) == 0 && trigger == "0")
-                return;
+                return
             else if (length > 1 && formula[length - 1] == "0" && typeId(formula[length - 2]) == 0 && trigger != "0")
-                formula = formula.slice(0, length - 1) + trigger;
-            else if (digitCount < 15 && decDigitCount < 10)
-                formula = formula + trigger;
+                formula = formula.slice(0, length - 1) + trigger
+            else if (digitCount < 15 && integerDigitCount < 10 && eDigitCount < 3)
+                formula = formula + trigger
         }
     }
     
@@ -323,6 +325,8 @@ function calcHistory(event) {
             container.removeChild(container.children[0])
     }
     else {
+        if (document.querySelector('#display').value == "0")
+            document.querySelector('#display').value = ""
         if (trigger[0] == "=") {
             document.querySelector('#display').value = document.querySelector('#display').value + trigger.slice(1)
             preCalc(document.querySelector('#display').value)
@@ -455,7 +459,7 @@ function parse (formula) {
                     percentageOperatorIndex = -1
                 if (i < length - 1) {
                     if (formula[i + 1] == "x" || formula[i + 1] == "÷")
-                        percentageOperatorIndex = -1
+                        percentageOfFormula = ""
                 }
                 if (percentageOfFormula != "")
                     percentageOfFormula = calculate(parse(percentageOfFormula))
@@ -531,7 +535,7 @@ function parse (formula) {
     parsedFormulaLen = parsedFormula.length;
     for (let i = 0; i < parsedFormulaLen; i++) {
         parsedFormulaLen = parsedFormula.length;
-        if (parsedFormula[i] == "/" && parsedFormula[i - 1] != ")" && parsedFormula[i + 1] != "(") {
+        if (parsedFormula[i] == "/" && parsedFormula[i - 1] != ")" && parsedFormula[i + 1] != "(" && parsedFormula[i - 1] != parsedFormula[i + 1]) {
             parsedFormula.splice((i - 1), 0, "(");
             if (i < (parsedFormulaLen - 2)) 
                 parsedFormula.splice((i + 3), 0, ")");
