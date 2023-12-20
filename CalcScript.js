@@ -210,12 +210,9 @@ function read(event) {
     }
     else if (typeId(trigger) == 0) {
         if (formula != "0" && formula != "‑") {
-            if (formula[length - 1] == "(") {
-                formula = formula;
-                if (typeId(lastTrigger) == -1 && length > 0 && trigger == "‑")
-                    formula = formula + trigger;
-            }
-            else if (typeId(lastTrigger) == 0) {
+            if (formula[length - 1] == "(" && trigger == "‑") 
+                formula = formula + trigger;
+            else if (typeId(formula[length - 1]) == 0) {
                 if ((trigger == "+" || trigger == "‑") && formula[length - 2] == "(") {
                     if (trigger == "+" && formula[length - 1] == "‑")
                         formula = formula.slice(0, (length - 1));
@@ -230,8 +227,8 @@ function read(event) {
             else {
                 if (formula[length - 1] == ".")
                     formula = formula.slice(0, length - 1) + trigger;
-                else if (formula[length - 1] == "(" && trigger == "+")
-                    return;
+                else if (formula[length - 1] == "(")
+                    return
                 else
                     formula = formula + trigger;
             } 
