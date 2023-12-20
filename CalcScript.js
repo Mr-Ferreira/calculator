@@ -209,7 +209,7 @@ function read(event) {
             formula = formula + ".";
     }
     else if (typeId(trigger) == 0) {
-        if (formula != "0") {
+        if (formula != "0" && formula != "‑") {
             if (formula[length - 1] == "(") {
                 formula = formula;
                 if (typeId(lastTrigger) == -1 && length > 0 && trigger == "‑")
