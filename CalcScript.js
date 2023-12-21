@@ -51,8 +51,12 @@ function read(event) {
             if (typeId(formula[i]) == 0) {
                 if (i == 0) 
                     continue
+                else if (i == length - 1)
+                    break
                 operationPresent = true
-            }   
+            }
+            else if (formula[i] == "%")
+                operationPresent = true
         }
         if (operationPresent) {
             modifiedOutput = false
@@ -78,10 +82,13 @@ function read(event) {
                 }
             }
             formula = formula + "\n" + lastOperation
+            operationPresent = true
         }
         let preFormula = formula
-        formula = calculate(parse(formula))
-        formula = fancy(formula)
+        if (operationPresent) {
+            formula = calculate(parse(formula))
+            formula = fancy(formula)
+        }
         let postFormula = formula
         if (preFormula != postFormula && formula != "ERROR") {
             let historyIndex = document.getElementById("listContainer").childElementCount - 2
