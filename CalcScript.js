@@ -51,7 +51,7 @@ function read(event) {
                     break
                 operationPresent = true
             }
-            else if (formula[i] == "%")
+            else if (formula[i] == "%" && i == length - 1)
                 operationPresent = true
         }
         if (operationPresent) {
