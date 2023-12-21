@@ -3,6 +3,7 @@ let modifiedOutput = undefined
 let lastOperation = ""
 let formula = "0"
 
+// Resets global variables (and the calculator)
 function reset() {
     lastTrigger = ""
     modifiedOutput = undefined
@@ -29,19 +30,19 @@ function read(event) {
         reset()
     else if (trigger == "⌫") {
         if (formula == "ERROR" || formula == "Infinity" || formula == "‑Infinity")
-            reset();
+            reset()
         else {
-            formula = formula.slice(0, (length - 1));
-            formula = fancy(formula);
+            formula = formula.slice(0, (length - 1))
+            formula = fancy(formula)
             if (formula == "") 
-                reset();
+                reset()
         }
     }
     else if (formula == "ERROR" || formula == "Infinity" || formula == "‑Infinity") 
         return
     else if (trigger == "=") {
         length = formula.length
-        let operationPresent = false;
+        let operationPresent = false
         for (let i = 0; i < length; i++) {
             if (formula[i] == "e") {
                 i++
@@ -94,89 +95,94 @@ function read(event) {
         }
     }
     else if (trigger == "+/-") {
+        if (formula[length - 1] == "e") 
+                return
         if (formula == "0")
-            formula = "(‑";
+            formula = "(‑"
         else if (formula == "(‑")
-            formula = "0";
+            formula = "0"
         else {
             for (let i = length - 1; i >= 0; i--) {
                 if (typeId(formula[i]) == 1 && i > 0) {
                     if (formula[i] == "%") 
-                        formula = formula + "x(‑";
+                        formula = formula + "x(‑"
                     else
-                        continue;
+                        continue
                 }
                 else if (typeId(formula[i]) == 1)
-                    formula = "(‑" + formula;
+                    formula = "(‑" + formula
                 else if (i == (length - 1)){
                     if (formula[i] == ")") 
-                        formula = formula + "x(‑";
+                        formula = formula + "x(‑"
                     else if (formula[i] == "‑" && i > 0) {
                         if (formula[i - 1] == "(")
-                            formula = formula.slice(0, (i - 1));
+                            formula = formula.slice(0, (i - 1))
                         else
-                            formula = formula + "(‑";
+                            formula = formula + "(‑"
                     }
                     else
-                        formula = formula + "(‑";
+                        formula = formula + "(‑"
                 }
                 else if (formula[i] == "‑" && i > 0) {
                     if (formula[i - 1] == "e")
-                            continue;
+                            continue
                     else if (formula[i - 1] == "(")
-                        formula = formula.slice(0, (i - 1)) + formula.slice(i + 1);
+                        formula = formula.slice(0, (i - 1)) + formula.slice(i + 1)
                     else
-                        formula = formula.slice(0, (i + 1)) + "(‑" + formula.slice(i + 1);
+                        formula = formula.slice(0, (i + 1)) + "(‑" + formula.slice(i + 1)
                 }
                 else {
                     if (i - 1 >= 0) {
                         if (formula[i - 1] == "e")
-                            continue;
+                            continue
                     }
-                    formula = formula.slice(0, (i + 1)) + "(‑" + formula.slice(i + 1);
+                    formula = formula.slice(0, (i + 1)) + "(‑" + formula.slice(i + 1)
                 } 
-                break;
+                break
             }
         }
     }
     else if (trigger == "( )" || trigger == "(" || trigger == ")") {
-        let sumLeft = 0;
-        let sumRight = 0;
+        if (formula[length - 1] == "e") 
+                return
+        let sumLeft = 0
+        let sumRight = 0
 
+        
         for (let i = 0; i < length; i++) {
             if (formula[i] == "(")
-                sumLeft++;
+                sumLeft++
             else if (formula[i] == ")")
-                sumRight++;    
+                sumRight++
         }
 
         if (formula == "0") 
-            formula = "(";
+            formula = "("
         else if (formula[length - 1] == "." && sumRight == sumLeft) 
-            formula = formula.slice(0, length - 1) + "x(";
+            formula = formula.slice(0, length - 1) + "x("
         else if (formula[length - 1] == "." && sumRight < sumLeft)
-            formula = formula.slice(0, length - 1) + ")";
+            formula = formula.slice(0, length - 1) + ")"
         else if (typeId(formula[length - 1]) != 0 && sumLeft == sumRight)
-            formula = formula + "x(";
+            formula = formula + "x("
         else if (typeId(formula[length - 1]) == 0 && sumLeft == sumRight)
-            formula = formula + "(";
+            formula = formula + "("
         else if (typeId(formula[length - 1]) == 1)
-            formula = formula + ")";
+            formula = formula + ")"
         else if (typeId(formula[length - 1]) == -1) {
             if (formula[length - 1] == ")")
-                formula = formula + ")";
+                formula = formula + ")"
             else
-                formula = formula + "(";
+                formula = formula + "("
         }
         else if (typeId(formula[length - 1]) == 0) {
-            formula = formula + "(";
+            formula = formula + "("
         }  
     }
     else if (trigger == "%") {
-        if (formula != "0" && typeId(formula[length - 1]) != 0) {
+        if (formula != "0" && typeId(formula[length - 1]) != 0 && formula[length - 1] != "e") {
             if (formula[length - 1] == ".")
                 formula = formula.slice(0, (length - 1)) + trigger
-            if (length != 0 && typeId(lastTrigger) != 0 && formula[length - 1] != "%" && formula[length - 1] != "(")
+            else if (length != 0 && typeId(lastTrigger) != 0 && formula[length - 1] != "%" && formula[length - 1] != "(")
                 formula = formula + "%"
         }
     }
@@ -186,51 +192,58 @@ function read(event) {
         if (typeId(formula[length - 1]) == 1 && formula[length - 1] != "%") {
             for (let i = length - 1; i >= 0; i--) {
                 if (formula[i] == ".")
-                    break;
+                    break
                 else if (typeId(formula[i]) == 1 && i == 0)
-                    formula = formula + ".";
+                    formula = formula + "."
                 else if (typeId(formula[i]) == 1)
-                    continue;
+                    continue
                 else {
                     if (i > 0) {
                         if (formula[i - 1] == "e")
-                            break;
+                            break
                     }
-                    formula = formula + ".";
-                    break;
+                    formula = formula + "."
+                    break
                 }
             }
         }
-        else if (typeId(formula[length - 1]) == 0)
-            formula = formula + "0.";
+        else if (typeId(formula[length - 1]) == 0) {
+            if (i > 0) {
+                if (formula[i - 1] == "e")
+                    return
+            }
+            formula = formula + "0."
+        }
         else if (formula[length - 1] == ")" || formula[length - 1] == "%")
-            formula = formula + "x0.";
+            formula = formula + "x0."
         else if (formula[length - 1] != ".")
-            formula = formula + ".";
+            formula = formula + "."
     }
     else if (typeId(trigger) == 0) {
         if (formula != "0" && formula != "‑") {
             if (formula[length - 1] == "(" && trigger == "‑") 
-                formula = formula + trigger;
+                formula = formula + trigger
+            else if (formula[length - 1] == "e" && (trigger == "÷" || trigger == "x")) 
+                return
             else if (typeId(formula[length - 1]) == 0) {
                 if ((trigger == "+" || trigger == "‑") && formula[length - 2] == "(") {
                     if (trigger == "+" && formula[length - 1] == "‑")
-                        formula = formula.slice(0, (length - 1));
+                        formula = formula.slice(0, (length - 1))
                     else
-                        formula = formula.slice(0, (length - 1)) + trigger;
+                        formula = formula.slice(0, (length - 1)) + trigger
                 }
                 else if (trigger == "+" || trigger == "‑")
-                    formula = formula.slice(0, (length - 1)) + trigger;
-                else if ((trigger == "÷" || trigger == "x") && formula[length - 2] != "(")
-                    formula = formula.slice(0, (length - 1)) + trigger;
+                    formula = formula.slice(0, (length - 1)) + trigger
+                else if ((trigger == "÷" || trigger == "x") && formula[length - 2] != "(" && formula[length - 2] != "e")
+                    formula = formula.slice(0, (length - 1)) + trigger
             }
             else {
                 if (formula[length - 1] == ".")
-                    formula = formula.slice(0, length - 1) + trigger;
+                    formula = formula.slice(0, length - 1) + trigger
                 else if (formula[length - 1] == "(")
                     return
                 else
-                    formula = formula + trigger;
+                    formula = formula + trigger
             } 
         }
         else if (trigger == "‑")
@@ -239,14 +252,16 @@ function read(event) {
     else if (typeId(trigger) == 1 && length > 1 && (formula[length - 1] == "%" || formula[length - 1] == ")"))
         formula = formula + "x" + trigger
     else if (typeId(trigger) == 1){
+        if (formula[length - 1] == "e") 
+                return
         if (modifiedOutput == true)
             reset()
         if (formula == "0" || formula == "ERROR")
-            formula = trigger;
+            formula = trigger
         else if (typeId(lastTrigger) == 0 && trigger == "0")
-            formula = formula + trigger;
+            formula = formula + trigger
         else {
-            let naturalNumOrDecimal = false;
+            let naturalNumOrDecimal = false
             for (let i = length - 1; i >= 0; i--) {
                 if (formula[i] == "." || Number(formula[i]) > 0){
                     naturalNumOrDecimal = true
@@ -343,7 +358,7 @@ function calcHistory(event) {
 
 // Automatically shows a preview of the current calculation being typed
 function preCalc (formula) {
-    let operationPresent = false;
+    let operationPresent = false
     let length = formula.length
     if (formula == "=") 
         formula = ""
@@ -391,10 +406,10 @@ function appendHistory (string) {
 
 // Animates buttons when clicked
 function buttonClick(event) {
-    event.srcElement.style.backgroundColor = "rgb(143, 143, 143)";
+    event.srcElement.style.backgroundColor = "rgb(143, 143, 143)"
     let changeColorBack = setInterval(function () {
-        event.srcElement.style.backgroundColor = "rgb(255, 255, 255)";
-    }, 150);
+        event.srcElement.style.backgroundColor = "rgb(255, 255, 255)"
+    }, 150)
 }
 
 // Parses the formula to be later solved.
@@ -403,11 +418,11 @@ function parse (formula) {
     let parsedFormulaIndex = 0
     function next () {
         if (parsedFormula[parsedFormulaIndex] != "") {
-            parsedFormula.push("");
-            parsedFormulaIndex++;
+            parsedFormula.push("")
+            parsedFormulaIndex++
         }
     }
-    let parsedFormulaLen = parsedFormula.length;
+    let parsedFormulaLen = parsedFormula.length
     let length = formula.length
     for (let i = 0; i < length; i++) {
         if (typeId(formula[i]) == 1) {
@@ -467,86 +482,86 @@ function parse (formula) {
                     percentageOfFormula = calculate(parse(percentageOfFormula))
                 next()
                 if (parsedFormula[parsedFormulaIndex - 1] == ")") {
-                    parsedFormulaLen = parsedFormula.length;
-                    let closedCount = 0;
-                    let openIndex = -1;
+                    parsedFormulaLen = parsedFormula.length
+                    let closedCount = 0
+                    let openIndex = -1
                     for (let j = parsedFormulaLen - 1; j >= 0; j--) {
                         if (parsedFormula[j] == ")")
-                            closedCount++;
+                            closedCount++
                         else if (parsedFormula[j] == "(" && closedCount == 1) 
-                            openIndex = j;
+                            openIndex = j
                         else if (parsedFormula[j] == "(") 
-                            closedCount--;
+                            closedCount--
                     }
-                    parsedFormula.splice(openIndex, 0, "(");
-                    parsedFormulaIndex++;
+                    parsedFormula.splice(openIndex, 0, "(")
+                    parsedFormulaIndex++
                 }
                 else {
-                    next();
-                    parsedFormula[parsedFormulaIndex] = parsedFormula[parsedFormulaIndex - 1];
-                    parsedFormula[parsedFormulaIndex - 1] = "(";
-                    next();
+                    next()
+                    parsedFormula[parsedFormulaIndex] = parsedFormula[parsedFormulaIndex - 1]
+                    parsedFormula[parsedFormulaIndex - 1] = "("
+                    next()
                 }
-                parsedFormula[parsedFormulaIndex] = "/";
-                next();
-                parsedFormula[parsedFormulaIndex] = "100";
-                next();
-                parsedFormula[parsedFormulaIndex] = ")";
+                parsedFormula[parsedFormulaIndex] = "/"
+                next()
+                parsedFormula[parsedFormulaIndex] = "100"
+                next()
+                parsedFormula[parsedFormulaIndex] = ")"
                 if (percentageOfFormula != "" && percentageOfFormula != "ERROR") {
                     next()
-                    parsedFormula[parsedFormulaIndex] = "*";
+                    parsedFormula[parsedFormulaIndex] = "*"
                     next()
-                    parsedFormula[parsedFormulaIndex] = percentageOfFormula;
+                    parsedFormula[parsedFormulaIndex] = percentageOfFormula
                 }
             }
             else if (formula[i] == "," || formula[i] == "\n") 
-                continue;
+                continue
             else if (formula[i] == "e") {
                 if (formula[i + 1] == "‑")
-                    parsedFormula[parsedFormulaIndex] = parsedFormula[parsedFormulaIndex] + "e-" + formula[i + 2];
+                    parsedFormula[parsedFormulaIndex] = parsedFormula[parsedFormulaIndex] + "e-" + formula[i + 2]
                 else
-                    parsedFormula[parsedFormulaIndex] = parsedFormula[parsedFormulaIndex] + "e" + formula[i + 1] + formula[i + 2];
-                i+=2;
+                    parsedFormula[parsedFormulaIndex] = parsedFormula[parsedFormulaIndex] + "e" + formula[i + 1] + formula[i + 2]
+                i+=2
             }
             else if ((typeId(parsedFormula[parsedFormulaIndex]) == 1))
-                parsedFormula[parsedFormulaIndex] = parsedFormula[parsedFormulaIndex] + formula[i];
+                parsedFormula[parsedFormulaIndex] = parsedFormula[parsedFormulaIndex] + formula[i]
             else {
-                next();
-                parsedFormula[parsedFormulaIndex] = parsedFormula[parsedFormulaIndex] + formula[i];
+                next()
+                parsedFormula[parsedFormulaIndex] = parsedFormula[parsedFormulaIndex] + formula[i]
             }
         } 
         else {
-            next();
+            next()
             if (formula[i] == "x" && i < (length - 1))
-                parsedFormula[parsedFormulaIndex] = "*";
+                parsedFormula[parsedFormulaIndex] = "*"
             else if (formula[i] == "+" && i < (length - 1)) 
-                parsedFormula[parsedFormulaIndex] = "+";
+                parsedFormula[parsedFormulaIndex] = "+"
             else if (formula[i] == "‑" && i < (length - 1)) 
-                parsedFormula[parsedFormulaIndex] = "‑";
+                parsedFormula[parsedFormulaIndex] = "‑"
             else if (formula[i] == "÷" && i < (length - 1))
-                parsedFormula[parsedFormulaIndex] = "/";
+                parsedFormula[parsedFormulaIndex] = "/"
             else if (formula[i] == "(" && i < (length - 1)) 
-                parsedFormula[parsedFormulaIndex] = "(";  
+                parsedFormula[parsedFormulaIndex] = "("
             else if (formula[i] == ")") 
-                parsedFormula[parsedFormulaIndex] = ")";
+                parsedFormula[parsedFormulaIndex] = ")"
             else if (i == (length - 1)) {
                 return "ERROR"
             }  
         } 
     }
     //
-    let sumLeft = 0;
-    let sumRight = 0;
-    parsedFormulaLen = parsedFormula.length;
+    let sumLeft = 0
+    let sumRight = 0
+    parsedFormulaLen = parsedFormula.length
     for (let i = 0; i < parsedFormulaLen; i++) {
         if (parsedFormula[i] == "(")
-            sumLeft++;
+            sumLeft++
         else if (parsedFormula[i] == ")")
-            sumRight++;    
+            sumRight++
     }
     while (sumLeft > sumRight) {
-        parsedFormula.push(")");
-        sumRight++;
+        parsedFormula.push(")")
+        sumRight++
     }
     return parsedFormula
 }
@@ -554,30 +569,30 @@ function parse (formula) {
 // Calculates the formula based on parsedFormula.
 // Recall - PEMDAS.
 function calculate (formula) {
-    let length = formula.length;
-    let calculation = 0;
+    let length = formula.length
+    let calculation = 0
     if (formula == "ERROR")
         return "ERROR"
     // Solve parentheses using recursion.
-    let parenthesesSize = 0;
+    let parenthesesSize = 0
     for (let i = 0; i < length; i++) {
         if (formula[i] == "(") {
-            let openCount = 1;
-            let closedCount = 0;
+            let openCount = 1
+            let closedCount = 0
             for (let j = i + 1; j < length; j++) {
                 if (formula[j] == "(")
-                    openCount++;
+                    openCount++
                 else if (formula[j] == ")")
-                    closedCount++;
+                    closedCount++
                 if (openCount == closedCount)  {
-                    parenthesesSize = (j - i) + 1;
-                    let localCalc = 0;
-                    localCalc = calculate(formula.slice((i + 1), j));
+                    parenthesesSize = (j - i) + 1
+                    let localCalc = 0
+                    localCalc = calculate(formula.slice((i + 1), j))
                     if (localCalc == "ERROR")
-                        return "ERROR";
-                    formula.splice(i, parenthesesSize, localCalc);
-                    length = formula.length;
-                    break;
+                        return "ERROR"
+                    formula.splice(i, parenthesesSize, localCalc)
+                    length = formula.length
+                    break
                 }
             }
         }
@@ -586,46 +601,46 @@ function calculate (formula) {
     // Solve multiplications and divisions.
     for (let i = 0; i < length; i++) {
         if ((formula[i] == "*" || formula[i] == "/") && i != (length - 1)) {
-            let localCalc = 0;
+            let localCalc = 0
             let num1 = Number(precision(formula[i - 1]))
             let num2 = Number(precision(formula[i + 1]))
             if (formula[i] == "*")
-                localCalc = num1 * num2;
+                localCalc = num1 * num2
             else {
                 if (num2 == 0)
-                    return "ERROR";
+                    return "ERROR"
                 else
-                    localCalc = num1 / num2;
+                    localCalc = num1 / num2
             }
-            localCalc = precision(localCalc.toString());
-            formula.splice(i - 1, 3, localCalc);
-            length = formula.length;
-            i = i - 1;
+            localCalc = precision(localCalc.toString())
+            formula.splice(i - 1, 3, localCalc)
+            length = formula.length
+            i = i - 1
         }
     }
 
     // Solve additions and subtractions.
-    let sum = false;
-    let sub = false;
+    let sum = false
+    let sub = false
     for (let i = 0; i < length; i++) {
         let num = Number(precision(formula[i]))
         if (!isNaN(num)) {
             if (sum || i == 0) {
-                calculation = calculation + num;
-                sum = false;
+                calculation = calculation + num
+                sum = false
             }
             else if (sub) {
-                calculation = calculation - num;
-                sub = false;
+                calculation = calculation - num
+                sub = false
             }
-            calculation = Number(precision(calculation.toString()));
+            calculation = Number(precision(calculation.toString()))
         }
         else if (formula[i] == "+") 
-            sum = true;
+            sum = true
         else if (formula[i] == "‑" || formula[i] == "-") 
-            sub = true; 
+            sub = true
     }
-    return precision(calculation.toString());
+    return precision(calculation.toString())
 }
 
 // Limits size of calculated numbers to 10 digits after the decimal,
@@ -633,48 +648,48 @@ function calculate (formula) {
 // Limits size of calculated numbers to 15 digits total.
 function precision(num) {
     if (num == "0")
-        return num;
+        return num
 
     // Counts number of digits after the decimal
-    let dec = false;
-    let decDigitCount = 0;
-    let nonZeroDecDigitCount = 0;
-    let nonZeroIndex = -1;
-    let tempNum = "";
-    let decIndex = -1;
-    let eIndex = -1;
+    let dec = false
+    let decDigitCount = 0
+    let nonZeroDecDigitCount = 0
+    let nonZeroIndex = -1
+    let tempNum = ""
+    let decIndex = -1
+    let eIndex = -1
     let length = num.length
 
     for (let i = 0; i < length; i++) {
         if (num[i] == ".") {
-            dec = true;
-            decIndex = i;
-            continue;
+            dec = true
+            decIndex = i
+            continue
         }
         if (num[i] == "e") {
-            eIndex = i;
+            eIndex = i
             if (dec == false)
-                return num;
-            dec = false;
+                return num
+            dec = false
         }
         if (dec) {
-            decDigitCount++;
+            decDigitCount++
             if (num[i] != "0" && nonZeroIndex == -1) 
-                nonZeroIndex = i;
+                nonZeroIndex = i
             if (nonZeroIndex != -1 && eIndex == -1)
-                nonZeroDecDigitCount++;  
+                nonZeroDecDigitCount++
         }
         if (decDigitCount == 11 && dec) {
             if ((i + 1) > (length - 1)) 
-                tempNum = num;
+                tempNum = num
             else
-                tempNum = num.slice(0, i + 1);
+                tempNum = num.slice(0, i + 1)
         }
     }
 
-    let eQuantity = "";
+    let eQuantity = ""
     if (eIndex != -1)
-        eQuantity = num.slice(eIndex);
+        eQuantity = num.slice(eIndex)
     
     if (tempNum != "") {
         if (Number(tempNum[tempNum.length - 1]) > 4){
@@ -683,36 +698,36 @@ function precision(num) {
             let postRoundLen = 0
             tempNum = tempNum.slice(0, (decIndex + 1))
             
-            preRoundLen = newVal.length;
-            newVal = Number(newVal) + 1;
-            newVal = newVal.toString();
-            postRoundLen = newVal.length;
+            preRoundLen = newVal.length
+            newVal = Number(newVal) + 1
+            newVal = newVal.toString()
+            postRoundLen = newVal.length
     
             
             if (newVal.length > 11) {
-                newVal = "";
+                newVal = ""
                 if (tempNum[0] == "‑" || tempNum[0] == "-")
-                    tempNum = Number(tempNum) - 1;
+                    tempNum = Number(tempNum) - 1
                 else
-                    tempNum = Number(tempNum) + 1;
-                tempNum = tempNum.toString();
+                    tempNum = Number(tempNum) + 1
+                tempNum = tempNum.toString()
             }
             else if (postRoundLen > preRoundLen) {
                 for (let i = 0; i < (decDigitCount - nonZeroDecDigitCount - 1); i++)
-                    tempNum = tempNum + "0";
+                    tempNum = tempNum + "0"
             }
             else {
                 for (let i = 0; i < (decDigitCount - nonZeroDecDigitCount); i++)
-                    tempNum = tempNum + "0";
+                    tempNum = tempNum + "0"
             }
-            num = tempNum + newVal + eQuantity;
+            num = tempNum + newVal + eQuantity
         }   
         else 
-            num = tempNum.slice(0, (tempNum.length - 1)) + eQuantity;
+            num = tempNum.slice(0, (tempNum.length - 1)) + eQuantity
     }
 
 
-    let digitCount = 0;
+    let digitCount = 0
     for (let i = 0; i < length; i++) {
         if (!isNaN(Number(num[i])))
             digitCount++
@@ -726,7 +741,7 @@ function precision(num) {
                 digitCount--
             }
             else if (num[i] == ".")
-                break;
+                break
             i--
         }
     }
@@ -738,7 +753,7 @@ function precision(num) {
         }
         num = num.slice(0, 10)
         if (num[9] > 4) 
-            num = Number(num.slice(0, 9)) + 1;
+            num = Number(num.slice(0, 9)) + 1
         else 
             num = Number(num.slice(0, 9))
         num = num.toString()
@@ -746,42 +761,42 @@ function precision(num) {
         if (negSign == true)
             num = "-" + num
     }
-    return num;
+    return num
 }
 
 // Returns 0 if value is a mathematical operator, 1 if it's a number/misc syntax, and -1 if it's neither.
 function typeId (value) {
     if (value != undefined) {
         if (!isNaN(Number(value)) || value == "%" || value == "." || value == "," || value == "e")
-            return 1;
+            return 1
     }
     let operators = ["x", "+", "‑", "÷", "/", "-"]
-    let operatorsLen = operators.length;
+    let operatorsLen = operators.length
     for (let i = 0; i < operatorsLen; i++) {
         if (value == operators[i])
-            return 0;
+            return 0
     }
-    return -1;
+    return -1
 }
 
 // Adds commas for every 3 integer digits, adds/removes line breaks, fixes hyphens
 function fancy (formula) {
-    length = formula.length;
+    length = formula.length
     if (formula[length - 1] == "\n") 
-        formula = formula.slice(0, (length - 1));
+        formula = formula.slice(0, (length - 1))
 
     for (let i = 0; i < length; i++) {
         if (formula[i] == "-")
             formula = formula.slice(0, i) + "‑" + formula.slice(i + 1)
     }
 
-    length = formula.length;
-    let unbrokenChars = 0;
+    length = formula.length
+    let unbrokenChars = 0
     for (let i = 0; i < length; i++) {
         if (formula[i] != "\n")
-            unbrokenChars++;
+            unbrokenChars++
         else
-            unbrokenChars = 0;
+            unbrokenChars = 0
 
         if (unbrokenChars > 19) {
             for (let j = i; j >= 0; j--) {
@@ -792,11 +807,11 @@ function fancy (formula) {
                     }
                     if (j != 0) {
                         if (formula[j - 1] != "\n") {
-                            formula = formula.slice(0, j) + "\n" + formula.slice(j);
-                            i--;
-                            length++;
-                            unbrokenChars = 0;
-                            break;
+                            formula = formula.slice(0, j) + "\n" + formula.slice(j)
+                            i--
+                            length++
+                            unbrokenChars = 0
+                            break
                         }
                     }
                 }
@@ -804,50 +819,50 @@ function fancy (formula) {
         }
     }
     
-    length = formula.length;
+    length = formula.length
     let nonFancy = ""
-    let newNumStartIndex = -1;
-    let decIndex = -1;
+    let newNumStartIndex = -1
+    let decIndex = -1
     for (let i = 0; i < length; i++) {
         if (formula[i] != "," && decIndex == -1)
-            nonFancy = nonFancy + formula[i];
+            nonFancy = nonFancy + formula[i]
         if (formula[i] == ".") {
-            decInNum = true;
-            nonFancy = nonFancy.slice(0, (nonFancy.length - 1));
-            decIndex = i;
+            decInNum = true
+            nonFancy = nonFancy.slice(0, (nonFancy.length - 1))
+            decIndex = i
         }
         if (typeId(formula[i]) == 0 || formula[i] == ")" || formula[i] == "%" || formula[i] == "(") {
-            decInNum = false;
-            nonFancy = "";
-            newNumStartIndex = i;
-            decIndex = -1;
+            decInNum = false
+            nonFancy = ""
+            newNumStartIndex = i
+            decIndex = -1
         } 
     }
-    let nonFancyLen = nonFancy.length;
+    let nonFancyLen = nonFancy.length
     
 
     if (nonFancyLen > 0 && nonFancy != "0" && formula != "ERROR" && formula != "Infinity" && formula != "‑Infinity") {
-        let fancy = "";
+        let fancy = ""
         for (let i = nonFancyLen - 4; i >= 0; i = i - 3) {
             if (i == nonFancyLen - 4) 
-                fancy = "," + nonFancy.slice(i + 1) + fancy;
+                fancy = "," + nonFancy.slice(i + 1) + fancy
             else
-                fancy = "," + nonFancy.slice(i + 1, i + 4) + fancy;
+                fancy = "," + nonFancy.slice(i + 1, i + 4) + fancy
         }
             
         if (nonFancyLen % 3 == 2) 
-            fancy = nonFancy.slice(0, 2) + fancy;
+            fancy = nonFancy.slice(0, 2) + fancy
         if (nonFancyLen % 3 == 1)
-            fancy = nonFancy[0] + fancy;
+            fancy = nonFancy[0] + fancy
         if (nonFancyLen % 3 == 0)
-            fancy = nonFancy.slice(0, 3) + fancy;
+            fancy = nonFancy.slice(0, 3) + fancy
 
         if (newNumStartIndex == -1 && decIndex == -1) 
-            formula = fancy;
+            formula = fancy
         else if (decIndex != -1) 
-            formula = formula.slice(0, (newNumStartIndex + 1)) + fancy + formula.slice(decIndex);
+            formula = formula.slice(0, (newNumStartIndex + 1)) + fancy + formula.slice(decIndex)
         else
-            formula = formula.slice(0, (newNumStartIndex + 1)) + fancy;
+            formula = formula.slice(0, (newNumStartIndex + 1)) + fancy
     }
     return formula
 }
