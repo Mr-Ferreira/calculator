@@ -126,6 +126,12 @@ function read(event) {
                 else if (formula[i] == "‑" && i > 0) {
                     if (formula[i - 1] == "e")
                             continue
+                    else if (formula[i - 1] == "\n") {
+                        if (formula[i - 2] == "(")
+                            formula = formula.slice(0, (i - 2)) + formula.slice(i + 1)
+                        else 
+                            formula = formula.slice(0, (i + 1)) + "(‑" + formula.slice(i + 1)
+                    }
                     else if (formula[i - 1] == "(")
                         formula = formula.slice(0, (i - 1)) + formula.slice(i + 1)
                     else
@@ -190,10 +196,14 @@ function read(event) {
         if (modifiedOutput == true)
             reset()
         if (typeId(formula[length - 1]) == 1 && formula[length - 1] != "%") {
+            let digitCount = 0
             for (let i = length - 1; i >= 0; i--) {
+                if (typeId(formula[i]) == 1 && formula[i] != "," && formula[i] != ".")
+                    digitCount++
+
                 if (formula[i] == ".")
                     break
-                else if (typeId(formula[i]) == 1 && i == 0)
+                else if (typeId(formula[i]) == 1 && i == 0 && digitCount < 15)
                     formula = formula + "."
                 else if (typeId(formula[i]) == 1)
                     continue
@@ -208,8 +218,8 @@ function read(event) {
             }
         }
         else if (typeId(formula[length - 1]) == 0) {
-            if (i > 0) {
-                if (formula[i - 1] == "e")
+            if (length - 1 > 0) {
+                if (formula[length - 2] == "e")
                     return
             }
             formula = formula + "0."
@@ -295,9 +305,7 @@ function read(event) {
                     decDigitCount = digitCount
                     continue
                 }
-                else if (formula[i] == "," || formula[i] == ".")
-                    continue
-                if (typeId(formula[i]) == 1)
+                if (typeId(formula[i]) == 1 && formula[i] != "," && formula[i] != ".")
                     digitCount++
                 if (decDigitCount >= 10 || digitCount >= 15 || eDigitCount >= 3)
                     break
@@ -736,9 +744,26 @@ function precision(num) {
         let i = length - 1
         while (digitCount > 15) {
             if (!isNaN(Number(num[i]))) {
-                num = num.slice(0, (length - 1))
-                length --
-                digitCount--
+                if (Number(num[i]) > 4 && num[i - 1] == ".") {
+                    let roundedVal = Number(num[i - 2]) + 1
+                    roundedVal = roundedVal.toString()
+                    num = num.slice(0, length - 3) + roundedVal
+                    length -= 2
+                    digitCount -= 2
+                    break
+                }
+                else if (Number(num[i]) > 4 && num[i - 1] != ".") {
+                    let roundedVal = Number(num[i - 1]) + 1
+                    roundedVal = roundedVal.toString()
+                    num = num.slice(0, length - 2) + roundedVal
+                    length --
+                    digitCount--
+                }
+                else {
+                    num = num.slice(0, (length - 1))
+                    length --
+                    digitCount--
+                }
             }
             else if (num[i] == ".")
                 break
@@ -826,7 +851,7 @@ function fancy (formula) {
     let newNumStartIndex = -1
     let decIndex = -1
     for (let i = 0; i < length; i++) {
-        if (formula[i] != "," && decIndex == -1)
+        if (formula[i] != "\n" && formula[i] != "," && decIndex == -1)
             nonFancy = nonFancy + formula[i]
         if (formula[i] == ".") {
             decInNum = true
