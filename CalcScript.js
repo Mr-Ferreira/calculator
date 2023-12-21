@@ -13,11 +13,7 @@ function reset() {
 
 // trigger function that designates the formula set-up based on button input.
 function read(event) {
-    let trigger = ""
-    if (event.srcElement == undefined) 
-        trigger = event
-    else
-        trigger = event.srcElement.innerHTML
+    let trigger = event.srcElement.innerHTML
     formula = document.querySelector('#display').value
     let length = formula.length
     
