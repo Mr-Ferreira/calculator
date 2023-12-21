@@ -442,9 +442,10 @@ function appendHistory (string) {
 
 // Animates buttons when clicked
 function buttonClick(event) {
+    let color = window.getComputedStyle(event.srcElement , null).getPropertyValue("background-color")
     event.srcElement.style.backgroundColor = "rgb(143, 143, 143)"
     let changeColorBack = setInterval(function () {
-        event.srcElement.style.backgroundColor = "rgb(255, 255, 255)"
+        event.srcElement.style.backgroundColor = color
     }, 150)
 }
 

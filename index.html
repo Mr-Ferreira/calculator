@@ -25,7 +25,7 @@
             </a>
         </div>
         <form action="">
-            <div class="customBorder" id="calc">
+            <div id="calc">
                 <div id="displayAndSideButtons">
                     <div>
                         <textarea type="text" id="display" readonly>0</textarea>
@@ -40,7 +40,8 @@
                     <table id="numPad"> 
                         <tr id="numPadRow">
                             <td id="numPadColumn">
-                                <button type="button" onclick="resize();read(event);buttonClick(event);">C</button>
+                                <button type="button" onclick="resize();read(event);buttonClick(event);" 
+                                style="color: white; background-color: rgb(121, 121, 255); border-color: rgb(154, 154, 255);">C</button>
                             </td>
                                 
                             <td id="numPadColumn">
@@ -129,7 +130,7 @@
                             </td>
                         </tr>
                     </table>
-                    <div id="histContainer" class="customBorder">
+                    <div id="histContainer">
                         <div id="histTitle">
                             History
                         </div>
