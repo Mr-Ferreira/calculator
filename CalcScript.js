@@ -274,7 +274,7 @@ function read(event) {
 
             // Counts the digits in the last number in the formula
             let digitCount = 0
-            let integerDigitCount = 0
+            let decDigitCount = 0
             // eDigitCount set to -1 to offset cases where e is the last element in the formula
             let eDigitCount = -1
             for (let i = length - 1; i >= 0; i--) {
@@ -292,21 +292,21 @@ function read(event) {
                         break
                 }  
                 else if (formula[i] == "." && eDigitCount == -1) {
-                    integerDigitCount = digitCount
+                    decDigitCount = digitCount
                     continue
                 }
                 else if (formula[i] == "," || formula[i] == ".")
                     continue
                 if (typeId(formula[i]) == 1)
                     digitCount++
-                if (integerDigitCount >= 10 || digitCount >= 15 || eDigitCount >= 3)
+                if (decDigitCount >= 10 || digitCount >= 15 || eDigitCount >= 3)
                     break
             }
             if (length > 1 && formula[length - 1] == "0" && typeId(formula[length - 2]) == 0 && trigger == "0")
                 return
             else if (length > 1 && formula[length - 1] == "0" && typeId(formula[length - 2]) == 0 && trigger != "0")
                 formula = formula.slice(0, length - 1) + trigger
-            else if (digitCount < 15 && integerDigitCount < 10 && eDigitCount < 3)
+            else if (digitCount < 15 && decDigitCount < 10 && eDigitCount < 3)
                 formula = formula + trigger
         }
     }
@@ -764,9 +764,11 @@ function precision(num) {
     return num
 }
 
-// Returns 0 if value is a mathematical operator, 1 if it's a number/misc syntax, and -1 if it's neither.
+// Returns 0 if value is a mathematical operator, 1 if it's a number/numeric syntax, and -1 if it's neither.
 function typeId (value) {
     if (value != undefined) {
+        if (value == "\n")
+            return -1
         if (!isNaN(Number(value)) || value == "%" || value == "." || value == "," || value == "e")
             return 1
     }
