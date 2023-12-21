@@ -441,12 +441,36 @@ function appendHistory (string) {
 }
 
 // Animates buttons when clicked
+let modifiedColorVal = false
 function buttonClick(event) {
-    let color = window.getComputedStyle(event.srcElement , null).getPropertyValue("background-color")
-    if (color != "rgb(143, 143, 143)") {
-        event.srcElement.style.backgroundColor = "rgb(143, 143, 143)"
-        setTimeout(() => {event.srcElement.style.backgroundColor = color}, 150)
+    let color
+    if (!modifiedColorVal) 
+        color = window.getComputedStyle(event.srcElement , null).getPropertyValue("background-color")
+    let colorLen = color.length
+    let colorVal = [""]
+    let colorValIndex = 0
+    for (let i = 4; i < colorLen; i++) {
+        if (!isNaN(Number(color[i]))) 
+            colorVal[colorValIndex] = colorVal[colorValIndex] + color[i]
+        else if (color[i] == ",") {
+            colorValIndex++
+            colorVal.push("")
+        }
     }
+    for (let i = 0; i < 3; i++)  {
+        colorVal[i] = colorVal[i] - 100
+        if (colorVal[i] < 0)
+            colorVal[i] = 0
+    }
+    
+    event.srcElement.style.backgroundColor = "rgb(" + colorVal[0] + "," + colorVal[1] + "," + colorVal[2] + ")"
+    event.srcElement.style.borderStyle = "inset"
+    modifiedColorVal = true
+    setTimeout(() => {
+        event.srcElement.style.backgroundColor = color
+        event.srcElement.style.borderStyle = "outset"
+        modifiedColorVal = false
+    }, 150)
 }
 
 // Parses the formula to be later solved.
