@@ -14,7 +14,14 @@ function reset() {
 
 // trigger function that designates the formula set-up based on button input.
 function read(event) {
-    let trigger = event.srcElement.innerHTML
+    let trigger = ""
+    if (event.srcElement == undefined) 
+        trigger = event
+    else
+        trigger = event.srcElement.innerHTML
+    if (trigger == "," || trigger == "\n")
+        return 0
+
     formula = document.querySelector('#display').value
     let preFormula = formula
     let length = formula.length
@@ -37,7 +44,7 @@ function read(event) {
         }
     }
     else if (formula == "ERROR" || formula == "Infinity" || formula == "‑Infinity") 
-        return
+        return 1
     else if (trigger == "=") {
         length = formula.length
         let operationPresent = false
@@ -103,7 +110,7 @@ function read(event) {
     }
     else if (trigger == "+/-") {
         if (formula[length - 1] == "e") 
-                return
+                return 1
         if (formula == "0")
             formula = "(‑"
         else if (formula == "(‑")
@@ -157,7 +164,7 @@ function read(event) {
     }
     else if (trigger == "( )" || trigger == "(" || trigger == ")") {
         if (formula[length - 1] == "e") 
-                return
+                return 1
         let sumLeft = 0
         let sumRight = 0
 
@@ -227,7 +234,7 @@ function read(event) {
         else if (typeId(formula[length - 1]) == 0) {
             if (length - 1 > 0) {
                 if (formula[length - 2] == "e")
-                    return
+                    return 1
             }
             formula = formula + "0."
         }
@@ -237,11 +244,9 @@ function read(event) {
             formula = formula + "."
     }
     else if (typeId(trigger) == 0) {
-        if (formula != "0" && formula != "‑") {
+        if (formula != "0" && formula != "‑" && formula[length - 1] != "e") {
             if (formula[length - 1] == "(" && trigger == "‑") 
                 formula = formula + trigger
-            else if (formula[length - 1] == "e" && (trigger == "÷" || trigger == "x")) 
-                return
             else if (typeId(formula[length - 1]) == 0) {
                 if ((trigger == "+" || trigger == "‑") && formula[length - 2] == "(") {
                     if (trigger == "+" && formula[length - 1] == "‑")
@@ -258,19 +263,19 @@ function read(event) {
                 if (formula[length - 1] == ".")
                     formula = formula.slice(0, length - 1) + trigger
                 else if (formula[length - 1] == "(")
-                    return
+                    return 1
                 else
                     formula = formula + trigger
             } 
         }
-        else if (trigger == "‑")
+        else if (formula == "0" && trigger == "‑")
             formula = "‑"
     }
     else if (typeId(trigger) == 1 && length > 1 && (formula[length - 1] == "%" || formula[length - 1] == ")"))
         formula = formula + "x" + trigger
     else if (typeId(trigger) == 1){
         if (formula[length - 1] == "e") 
-                return
+                return 1
         if (modifiedOutput == true)
             reset()
         if (formula == "0" || formula == "ERROR")
@@ -287,7 +292,7 @@ function read(event) {
             }
 
             if (trigger == "0" && naturalNumOrDecimal == false && formula[length - 1] == "0")
-                return
+                return 1
 
             // Counts the digits in the last number in the formula
             let digitCount = 0
@@ -318,7 +323,7 @@ function read(event) {
                     break
             }
             if (length > 1 && formula[length - 1] == "0" && typeId(formula[length - 2]) == 0 && trigger == "0")
-                return
+                return 1
             else if (length > 1 && formula[length - 1] == "0" && typeId(formula[length - 2]) == 0 && trigger != "0")
                 formula = formula.slice(0, length - 1) + trigger
             else if (digitCount < 15 && decDigitCount < 10 && eDigitCount < 3)
@@ -328,7 +333,11 @@ function read(event) {
     
     formula = fancy(formula)
     let postFormula = formula
-    
+    let errorCode = 0
+    if (preFormula == postFormula)
+        return 1
+    else
+        errorCode = 0
     document.querySelector('#display').value = formula
     if (trigger == "=" || trigger == "C" || formula == "0")
         preCalc("=")
@@ -338,6 +347,7 @@ function read(event) {
     let display = document.getElementById('display')
     display.scrollTop = display.scrollHeight
     resize()
+    return errorCode
 }
 
 // Resizes the font based on content width
@@ -345,7 +355,7 @@ function resize() {
     let display = document.getElementById('display')
     let fontSize = window.getComputedStyle(display, null).getPropertyValue('font-size')
     fontSize = Number(fontSize.slice(0, fontSize.length - 2))
-    if (!(display.scrollWidth > display.clientWidth) && fontSize < 30)
+    if (!(display.scrollWidth > display.clientWidth) && fontSize < 29)
         display.style.fontSize = "30px"
     else {
         while (display.scrollWidth > display.clientWidth) {
@@ -380,14 +390,18 @@ function calcHistory(event) {
     else {
         if (trigger[0] == "=")
             trigger = trigger.slice(1)
+        
+        let triggerLen = trigger.length
         let display = document.querySelector('#display').value
-        if (trigger != "0" && trigger != "Infinity" && trigger != "‑Infinity") {
-            if (display == "0" || display == "ERROR" || display == "Infinity" || display == "‑Infinity")
-                document.querySelector('#display').value = ""
-            document.querySelector('#display').value = document.querySelector('#display').value + trigger
-            preCalc(document.querySelector('#display').value)
+        for (let i = 0; i < triggerLen; i++) {
+            let run = read(trigger[i])
+            if (run == 1) {
+                if (display != document.querySelector('#display').value)
+                    document.querySelector('#display').value = display
+                break
+            }
         }
-        reset()
+        preCalc(document.querySelector('#display').value)
     }
     resize()
 }
@@ -444,33 +458,34 @@ function appendHistory (string) {
 let modifiedColorVal = false
 function buttonClick(event) {
     let color
-    if (!modifiedColorVal) 
+    if (!modifiedColorVal) {
         color = window.getComputedStyle(event.srcElement , null).getPropertyValue("background-color")
-    let colorLen = color.length
-    let colorVal = [""]
-    let colorValIndex = 0
-    for (let i = 4; i < colorLen; i++) {
-        if (!isNaN(Number(color[i]))) 
-            colorVal[colorValIndex] = colorVal[colorValIndex] + color[i]
-        else if (color[i] == ",") {
-            colorValIndex++
-            colorVal.push("")
+        let colorLen = color.length
+        let colorVal = [""]
+        let colorValIndex = 0
+        for (let i = 4; i < colorLen; i++) {
+            if (!isNaN(Number(color[i]))) 
+                colorVal[colorValIndex] = colorVal[colorValIndex] + color[i]
+            else if (color[i] == ",") {
+                colorValIndex++
+                colorVal.push("")
+            }
         }
+        for (let i = 0; i < 3; i++)  {
+            colorVal[i] = colorVal[i] - 100
+            if (colorVal[i] < 0)
+                colorVal[i] = 0
+        }
+        
+        event.srcElement.style.backgroundColor = "rgb(" + colorVal[0] + "," + colorVal[1] + "," + colorVal[2] + ")"
+        event.srcElement.style.borderStyle = "inset"
+        modifiedColorVal = true
+        setTimeout(() => {
+            event.srcElement.style.backgroundColor = color
+            event.srcElement.style.borderStyle = "outset"
+            modifiedColorVal = false
+        }, 150)
     }
-    for (let i = 0; i < 3; i++)  {
-        colorVal[i] = colorVal[i] - 100
-        if (colorVal[i] < 0)
-            colorVal[i] = 0
-    }
-    
-    event.srcElement.style.backgroundColor = "rgb(" + colorVal[0] + "," + colorVal[1] + "," + colorVal[2] + ")"
-    event.srcElement.style.borderStyle = "inset"
-    modifiedColorVal = true
-    setTimeout(() => {
-        event.srcElement.style.backgroundColor = color
-        event.srcElement.style.borderStyle = "outset"
-        modifiedColorVal = false
-    }, 150)
 }
 
 // Parses the formula to be later solved.
