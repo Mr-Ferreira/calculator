@@ -9,12 +9,14 @@ function reset() {
     modifiedOutput = undefined
     formula = "0"
     lastOperation = ""
+    display.style.fontSize = "30px"
 }
 
 // trigger function that designates the formula set-up based on button input.
 function read(event) {
     let trigger = event.srcElement.innerHTML
     formula = document.querySelector('#display').value
+    let preFormula = formula
     let length = formula.length
     
     if (trigger != "=" && modifiedOutput == false)
@@ -47,8 +49,10 @@ function read(event) {
             if (typeId(formula[i]) == 0) {
                 if (i == 0) 
                     continue
-                else if (i == length - 1)
+                else if (i == length - 1) {
+                    operationPresent = false
                     break
+                }
                 operationPresent = true
             }
             else if (formula[i] == "%" && i == length - 1)
@@ -323,6 +327,8 @@ function read(event) {
     }
     
     formula = fancy(formula)
+    let postFormula = formula
+    
     document.querySelector('#display').value = formula
     if (trigger == "=" || trigger == "C" || formula == "0")
         preCalc("=")
@@ -331,6 +337,24 @@ function read(event) {
     lastTrigger = trigger
     let display = document.getElementById('display')
     display.scrollTop = display.scrollHeight
+    resize()
+}
+
+// Resizes the font based on content width
+function resize() {
+    let display = document.getElementById('display')
+    let fontSize = window.getComputedStyle(display, null).getPropertyValue('font-size')
+    fontSize = Number(fontSize.slice(0, fontSize.length - 2))
+    if (!(display.scrollWidth > display.clientWidth) && fontSize < 30)
+        display.style.fontSize = "30px"
+    else {
+        while (display.scrollWidth > display.clientWidth) {
+            fontSize--
+            if (fontSize < 20)
+                return
+            display.style.fontSize = fontSize.toString() + "px"
+        }
+    }
 }
 
 // History container button functionalities
@@ -365,6 +389,7 @@ function calcHistory(event) {
         }
         reset()
     }
+    resize()
 }
 
 // Automatically shows a preview of the current calculation being typed

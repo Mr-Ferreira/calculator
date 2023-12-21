@@ -32,100 +32,100 @@
                         <textarea type="text" id="answerDisplay" readonly>= </textarea>
                     </div>
                     <div>
-                        <button type="button" onclick="read(event);buttonClick(event);" id="backspace">⌫</button>
-                        <button type="button" onclick="calcHistory(event);buttonClick(event);" id="showHistory">Hist</button>
+                        <button type="button" onclick="resize();read(event);buttonClick(event);" id="backspace">⌫</button>
+                        <button type="button" onclick="resize();calcHistory(event);buttonClick(event);" id="showHistory">Hist</button>
                     </div>
                 </div>
                 <div id="buttonContainer">
                     <table id="numPad"> 
-                        <tr>
-                            <td>
-                                <button type="button" onclick="read(event);buttonClick(event);">C</button>
+                        <tr id="numPadRow">
+                            <td id="numPadColumn">
+                                <button type="button" onclick="resize();read(event);buttonClick(event);">C</button>
                             </td>
                                 
-                            <td>
-                                <button type="button" onclick="read(event);buttonClick(event);">( )</button>
+                            <td id="numPadColumn">
+                                <button type="button" onclick="resize();read(event);buttonClick(event);">( )</button>
                             </td>
             
-                            <td>
-                                <button type="button" onclick="read(event);buttonClick(event);">%</button>
+                            <td id="numPadColumn">
+                                <button type="button" onclick="resize();read(event);buttonClick(event);">%</button>
                             </td>
             
-                            <td>
-                                <button type="button" onclick="read(event);buttonClick(event);">&divide;</button>
+                            <td id="numPadColumn">
+                                <button type="button" onclick="resize();read(event);buttonClick(event);">&divide;</button>
                                 
                             </td>
                         </tr>
                             
-                        <tr>
-                            <td>
-                                <button type="button" onclick="read(event);buttonClick(event);">7</button>
+                        <tr id="numPadRow">
+                            <td id="numPadColumn">
+                                <button type="button" onclick="resize();read(event);buttonClick(event);">7</button>
                             </td>
             
-                            <td>
-                                <button type="button" onclick="read(event);buttonClick(event);">8</button>
+                            <td id="numPadColumn">
+                                <button type="button" onclick="resize();read(event);buttonClick(event);">8</button>
                             </td>
             
-                            <td>
-                                <button type="button" onclick="read(event);buttonClick(event);">9</button>
+                            <td id="numPadColumn">
+                                <button type="button" onclick="resize();read(event);buttonClick(event);">9</button>
                             </td>
             
-                            <td>
-                                <button type="button" onclick="read(event);buttonClick(event);">x</button>
-                            </td>
-                        </tr>
-            
-                        <tr>
-                            <td>
-                                <button type="button" onclick="read(event);buttonClick(event);">4</button>
-                            </td>
-            
-                            <td>
-                                <button type="button" onclick="read(event);buttonClick(event);">5</button>
-                            </td>
-            
-                            <td>
-                                <button type="button" onclick="read(event);buttonClick(event);">6</button>
-                            </td>
-            
-                            <td>
-                                <button type="button" onclick="read(event);buttonClick(event);">‑</button>
+                            <td id="numPadColumn">
+                                <button type="button" onclick="resize();read(event);buttonClick(event);">x</button>
                             </td>
                         </tr>
             
-                        <tr>
-                            <td>
-                                <button type="button" onclick="read(event);buttonClick(event);">1</button>
+                        <tr id="numPadRow">
+                            <td id="numPadColumn">
+                                <button type="button" onclick="resize();read(event);buttonClick(event);">4</button>
                             </td>
             
-                            <td>
-                                <button type="button" onclick="read(event);buttonClick(event);">2</button>
+                            <td id="numPadColumn">
+                                <button type="button" onclick="resize();read(event);buttonClick(event);">5</button>
                             </td>
             
-                            <td>
-                                <button type="button" onclick="read(event);buttonClick(event);">3</button>
+                            <td id="numPadColumn">
+                                <button type="button" onclick="resize();read(event);buttonClick(event);">6</button>
                             </td>
             
-                            <td>
-                                <button type="button" onclick="read(event);buttonClick(event);">+</button>
+                            <td id="numPadColumn">
+                                <button type="button" onclick="resize();read(event);buttonClick(event);">‑</button>
                             </td>
                         </tr>
             
-                        <tr>
-                            <td>
-                                <button type="button" onclick="read(event);buttonClick(event);">+/-</button>
+                        <tr id="numPadRow">
+                            <td id="numPadColumn">
+                                <button type="button" onclick="resize();read(event);buttonClick(event);">1</button>
                             </td>
             
-                            <td>
-                                <button type="button" onclick="read(event);buttonClick(event);">0</button>
+                            <td id="numPadColumn">
+                                <button type="button" onclick="resize();read(event);buttonClick(event);">2</button>
                             </td>
             
-                            <td>
-                                <button type="button" onclick="read(event);buttonClick(event);">.</button>
+                            <td id="numPadColumn">
+                                <button type="button" onclick="resize();read(event);buttonClick(event);">3</button>
                             </td>
             
-                            <td>
-                                <button type="button" onclick="read(event);buttonClick(event);">=</button>
+                            <td id="numPadColumn">
+                                <button type="button" onclick="resize();read(event);buttonClick(event);">+</button>
+                            </td>
+                        </tr>
+            
+                        <tr id="numPadRow">
+                            <td id="numPadColumn">
+                                <button type="button" onclick="resize();read(event);buttonClick(event);">+/-</button>
+                            </td>
+            
+                            <td id="numPadColumn">
+                                <button type="button" onclick="resize();read(event);buttonClick(event);">0</button>
+                            </td>
+            
+                            <td id="numPadColumn">
+                                <button type="button" onclick="resize();read(event);buttonClick(event);">.</button>
+                            </td>
+            
+                            <td id="numPadColumn">
+                                <button type="button" onclick="resize();read(event);buttonClick(event);">=</button>
                             </td>
                         </tr>
                     </table>
@@ -133,7 +133,7 @@
                         <div id="histTitle">
                             History
                         </div>
-                        <button type="button" onclick="calcHistory(event);buttonClick(event);" id="clearHistory">Clear</button>
+                        <button type="button" onclick="resize();calcHistory(event);buttonClick(event);" id="clearHistory">Clear</button>
                         <br>
                         <br>
                         <div id="listContainer">
