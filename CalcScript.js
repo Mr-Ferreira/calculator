@@ -3,7 +3,7 @@ let modifiedOutput = undefined
 let lastOperation = ""
 let formula = "0"
 
-// Resets global variables (and the calculator)
+// Resets global variables
 function reset() {
     lastTrigger = ""
     modifiedOutput = undefined
@@ -574,7 +574,7 @@ function parse (formula) {
     return parsedFormula
 }
 
-// Calculates the formula based on parsedFormula.
+// Calculates the parsed formula.
 // Recall - PEMDAS.
 function calculate (formula) {
     let length = formula.length
@@ -806,17 +806,17 @@ function typeId (value) {
     return -1
 }
 
-// Adds commas for every 3 integer digits, adds/removes line breaks, fixes hyphens
+// Adds commas for every 3 integer digits, adds/removes line breaks, fixes hyphens (for aesthetics)
 function fancy (formula) {
     length = formula.length
-    if (formula[length - 1] == "\n") 
-        formula = formula.slice(0, (length - 1))
 
+    // adds special (non-mathematical) hyphen for aesthetic purposes
     for (let i = 0; i < length; i++) {
         if (formula[i] == "-")
             formula = formula.slice(0, i) + "‑" + formula.slice(i + 1)
     }
 
+    // adds line breaks
     length = formula.length
     let unbrokenChars = 0
     for (let i = 0; i < length; i++) {
@@ -825,7 +825,7 @@ function fancy (formula) {
         else
             unbrokenChars = 0
 
-        if (unbrokenChars > 19) {
+        if (unbrokenChars > 22) {
             for (let j = i; j >= 0; j--) {
                 if (typeId(formula[j]) == 0 || formula[j] == "(" || formula[j] == ")") {
                     if (typeId(formula[j]) == 0 && j > 0) {
@@ -838,10 +838,39 @@ function fancy (formula) {
                             i--
                             length++
                             unbrokenChars = 0
-                            break
                         }
                     }
+                    break
                 }
+            }
+        }
+    }
+
+    // removes unecessary line breaks
+    length = formula.length
+    for (let i = 0; i < length; i++) {
+        if (formula[i] == "\n") {
+            let leftChars = 0
+            let rightChars = 0
+            for (let j = i; j < length; j++) {
+                if (formula[j] == "\n" && j != i) 
+                    break
+                else if (j != i)
+                    rightChars++
+            }
+            for (let k = i; k >= 0; k--) {
+                if (formula[k] == "\n" && k != i) 
+                    break
+                else if (k != i)
+                    leftChars++
+            }
+            if (leftChars + rightChars <= 22) {
+                if (i == length - 1) 
+                    formula = formula.slice(0, i)
+                else if (i == 0) 
+                    formula = formula.slice(i + 1)
+                else 
+                    formula = formula.slice(0, i) + formula.slice(i + 1)
             }
         }
     }
