@@ -48,7 +48,7 @@ input.addEventListener("keyup" , function(event) {
                 else
                     potentialFormula = lastFormula.slice(0, loc) + trigger + lastFormula.slice(loc)
             }
-            reset()
+            setScreen("0")
             let potentialFormulaLen = potentialFormula.length
             for (let i = 0; i < potentialFormulaLen; i++) {
                 if (potentialFormula[i] == "e" && (potentialFormula[i + 1] == "+" || potentialFormula[i + 1] == "-")) {
@@ -103,7 +103,7 @@ input.addEventListener("paste", function(event) {
         else
             potentialFormula = lastFormula.slice(0, loc) + clipboard + lastFormula.slice(loc)
     }
-    reset()
+    setScreen("0")
     let potentialFormulaLen = potentialFormula.length
     for (let i = 0; i < potentialFormulaLen; i++) {
         if (potentialFormula[i] == "e" && (potentialFormula[i + 1] == "+" || potentialFormula[i + 1] == "-")) {
