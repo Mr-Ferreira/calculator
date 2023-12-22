@@ -48,12 +48,10 @@ input.addEventListener("keyup" , function(event) {
                 else
                     potentialFormula = lastFormula.slice(0, loc) + trigger + lastFormula.slice(loc)
             }
-            lastTrigger = ""
-            modifiedOutput = undefined
-            formula = "0"
-            lastOperation = ""
-            display.style.fontSize = "30px"
-            setScreen("0")
+            let formula = document.querySelector('#display').value
+            let length = formula.length
+            let reverseIndex = length - endloc
+            reset()
             let potentialFormulaLen = potentialFormula.length
             for (let i = 0; i < potentialFormulaLen; i++) {
                 if (potentialFormula[i] == "e" && (potentialFormula[i + 1] == "+" || potentialFormula[i + 1] == "-")) {
@@ -70,16 +68,13 @@ input.addEventListener("keyup" , function(event) {
                     break
                 }
             }
+            formula = document.querySelector('#display').value
+            length = formula.length
+            endloc = length - reverseIndex
+            loc = endloc
+            input.setSelectionRange(loc, loc)
         }
     }
-    if (document.querySelector('#display').value != lastFormula){
-        if (trigger == "⌫")
-            input.setSelectionRange(endloc - 1, endloc - 1)
-        else
-            input.setSelectionRange(loc + 1, loc + 1)
-    }
-    else
-        input.setSelectionRange(loc, loc)
     preCalc(document.querySelector('#display').value)
     resize()
     keyboardAction = false
@@ -108,12 +103,10 @@ input.addEventListener("paste", function(event) {
         else
             potentialFormula = lastFormula.slice(0, loc) + clipboard + lastFormula.slice(loc)
     }
-    lastTrigger = ""
-    modifiedOutput = undefined
-    formula = "0"
-    lastOperation = ""
-    display.style.fontSize = "30px"
-    setScreen("0")
+    let formula = document.querySelector('#display').value
+    let length = formula.length
+    let reverseIndex = length - endloc
+    reset()
     let potentialFormulaLen = potentialFormula.length
     for (let i = 0; i < potentialFormulaLen; i++) {
         if (potentialFormula[i] == "e" && (potentialFormula[i + 1] == "+" || potentialFormula[i + 1] == "-")) {
@@ -130,12 +123,13 @@ input.addEventListener("paste", function(event) {
             break
         }
     }
+    formula = document.querySelector('#display').value
+    length = formula.length
+    endloc = length - reverseIndex
+    loc = endloc
+    input.setSelectionRange(loc, loc)
     preCalc(document.querySelector('#display').value)
     resize()
-    if (document.querySelector('#display').value != lastFormula)
-        input.setSelectionRange(endloc - 1, endloc - 1)
-    else
-        input.setSelectionRange(loc, loc)
     keyboardAction = false
 })
 
@@ -162,7 +156,6 @@ function setScreen(string) {
     }
     input.setSelectionRange(loc, loc)
 }
-
 
 function focused() {
     cursorPresent = true
@@ -197,7 +190,7 @@ function read(event) {
     if (trigger == "C")
         reset()
     else if (loc != length && keyboardAction == false && loc != undefined) {
-        lastFormula = formula
+        lastFormula = document.querySelector('#display').value
         let potentialFormula = "0"
         if (trigger == "( )" || trigger == "+/-")
             return 0
@@ -217,13 +210,10 @@ function read(event) {
                 potentialFormula = lastFormula.slice(0, loc) + trigger + lastFormula.slice(loc)
             } 
         }
-        lastTrigger = ""
-        modifiedOutput = undefined
-        formula = "0"
-        lastOperation = ""
-        display.style.fontSize = "30px"
-        setScreen("0")
+        let formula = document.querySelector('#display').value
+        let length = formula.length
         let reverseIndex = length - endloc
+        reset()
         loc = undefined
         let potentialFormulaLen = potentialFormula.length
         for (let i = 0; i < potentialFormulaLen; i++) {
