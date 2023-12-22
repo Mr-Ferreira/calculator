@@ -80,7 +80,7 @@ input.addEventListener("keyup" , function(event) {
     keyboardAction = false
 })
 
-// Handles pasting functionality
+// Handles paste functionality
 input.addEventListener("paste", function(event) {
     lastFormula = document.querySelector('#display').value
     keyboardAction = true
