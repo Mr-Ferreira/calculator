@@ -48,6 +48,11 @@ input.addEventListener("keyup" , function(event) {
                 else
                     potentialFormula = lastFormula.slice(0, loc) + trigger + lastFormula.slice(loc)
             }
+            lastTrigger = ""
+            modifiedOutput = undefined
+            formula = "0"
+            lastOperation = ""
+            display.style.fontSize = "30px"
             setScreen("0")
             let potentialFormulaLen = potentialFormula.length
             for (let i = 0; i < potentialFormulaLen; i++) {
@@ -103,6 +108,11 @@ input.addEventListener("paste", function(event) {
         else
             potentialFormula = lastFormula.slice(0, loc) + clipboard + lastFormula.slice(loc)
     }
+    lastTrigger = ""
+    modifiedOutput = undefined
+    formula = "0"
+    lastOperation = ""
+    display.style.fontSize = "30px"
     setScreen("0")
     let potentialFormulaLen = potentialFormula.length
     for (let i = 0; i < potentialFormulaLen; i++) {
@@ -207,6 +217,11 @@ function read(event) {
                 potentialFormula = lastFormula.slice(0, loc) + trigger + lastFormula.slice(loc)
             } 
         }
+        lastTrigger = ""
+        modifiedOutput = undefined
+        formula = "0"
+        lastOperation = ""
+        display.style.fontSize = "30px"
         setScreen("0")
         let reverseIndex = length - endloc
         loc = undefined
