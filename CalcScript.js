@@ -1,7 +1,133 @@
-let lastTrigger = ""
 let modifiedOutput = undefined
-let lastOperation = ""
 let formula = "0"
+let lastFormula = ""
+let lastTrigger = ""
+let lastOperation = ""
+let loc = 1
+let endloc = 1
+let cursorPresent = false
+
+// Handles keyboard input for the display
+let input = document.getElementById("display")
+let keyboardAction = false
+input.addEventListener("keyup" , function(event) {
+    lastFormula = document.querySelector('#display').value
+    keyboardAction = true
+    let trigger = event.key
+    loc = input.selectionStart
+    endloc = input.selectionEnd
+    if (formula == "0")
+        lastFormula = ""
+    if (typeId(trigger) != -1 || trigger == "Backspace" || trigger == "Enter") {
+        if (trigger == "Backspace")
+            trigger = "⌫"
+        else if (trigger == "*")
+            trigger = "x"
+        else if (trigger == "/")
+            trigger = "÷"
+        else if (trigger == "Enter") {
+            read("=")
+            return
+        }
+        else if (trigger == "e")
+            return
+        
+        if (lastFormula.length == loc) 
+                read(trigger)
+        else if (trigger != "=") {
+            let potentialFormula = "0"
+            if (loc != endloc) {
+                if (loc == 0) 
+                    potentialFormula = trigger + lastFormula.slice(endloc)
+                else 
+                    potentialFormula = lastFormula.slice(0, loc) + trigger + lastFormula.slice(endloc)
+            }
+            else {
+                if (loc == 0) 
+                    potentialFormula = trigger + lastFormula.slice(0)
+                else
+                    potentialFormula = lastFormula.slice(0, loc) + trigger + lastFormula.slice(loc)
+            }
+            reset()
+            let potentialFormulaLen = potentialFormula.length
+            for (let i = 0; i < potentialFormulaLen; i++) {
+                if (potentialFormula[i] == "e" && (potentialFormula[i + 1] == "+" || potentialFormula[i + 1] == "-")) {
+                    setScreen(document.querySelector('#display').value + potentialFormula[i] + potentialFormula[i + 1])
+                    i++
+                    continue
+                }
+                let run = read(potentialFormula[i])
+                if (run == 1) {
+                    if (lastFormula == "")
+                        setScreen("0")
+                    else
+                        setScreen(lastFormula)
+                    break
+                }
+            }
+        }
+    }
+    if (document.querySelector('#display').value != lastFormula){
+        if (trigger == "⌫")
+            input.setSelectionRange(endloc - 1, endloc - 1)
+        else
+            input.setSelectionRange(loc + 1, loc + 1)
+    }
+    else
+        input.setSelectionRange(loc, loc)
+    preCalc(document.querySelector('#display').value)
+    resize()
+    keyboardAction = false
+})
+
+// Handles pasting functionality
+input.addEventListener("paste", function(event) {
+    lastFormula = document.querySelector('#display').value
+    keyboardAction = true
+    loc = input.selectionStart
+    endloc = input.selectionEnd
+    let clipboard = event.clipboardData.getData("text/plain")
+    if (formula == "0")
+        lastFormula = ""
+
+    let potentialFormula = "0"
+    if (loc != endloc) {
+        if (loc == 0) 
+            potentialFormula = clipboard + lastFormula.slice(endloc)
+        else 
+            potentialFormula = lastFormula.slice(0, loc) + clipboard + lastFormula.slice(endloc)
+    }
+    else {
+        if (loc == 0) 
+            potentialFormula = clipboard + lastFormula.slice(0)
+        else
+            potentialFormula = lastFormula.slice(0, loc) + clipboard + lastFormula.slice(loc)
+    }
+    reset()
+    let potentialFormulaLen = potentialFormula.length
+    for (let i = 0; i < potentialFormulaLen; i++) {
+        if (potentialFormula[i] == "e" && (potentialFormula[i + 1] == "+" || potentialFormula[i + 1] == "-")) {
+            setScreen(document.querySelector('#display').value + potentialFormula[i] + potentialFormula[i+1])
+            i++
+            continue
+        }
+        let run = read(potentialFormula[i])
+        if (run == 1) {
+            if (lastFormula == "")
+                setScreen("0")
+            else
+                setScreen(lastFormula)
+            break
+        }
+    }
+    preCalc(document.querySelector('#display').value)
+    resize()
+    if (document.querySelector('#display').value != lastFormula)
+        input.setSelectionRange(endloc - 1, endloc - 1)
+    else
+        input.setSelectionRange(loc, loc)
+    keyboardAction = false
+})
 
 // Resets global variables
 function reset() {
@@ -10,6 +136,28 @@ function reset() {
     formula = "0"
     lastOperation = ""
     display.style.fontSize = "30px"
+    setScreen("0")
+    loc = 1
+    endloc = 1
+    cursorPresent = false
+}
+
+// Changes what is on the display
+function setScreen(string) {
+    document.querySelector('#display').value = string
+    strLen = string.length
+    if (!cursorPresent) {
+        loc = strLen
+        endloc = strLen
+    }
+    input.setSelectionRange(loc, loc)
+}
+
+
+function focused() {
+    cursorPresent = true
+    loc = input.selectionStart
+    endloc = input.selectionEnd
 }
 
 // trigger function that designates the formula set-up based on button input.
@@ -19,13 +167,18 @@ function read(event) {
         trigger = event
     else
         trigger = event.srcElement.innerHTML
-    if (trigger == "," || trigger == "\n")
+    if (trigger == "," || trigger == "\n" || trigger == " ")
         return 0
+    if (trigger == "*")
+        trigger = "x"
+    else if (trigger == "/")
+        trigger = "÷"
 
     formula = document.querySelector('#display').value
     let preFormula = formula
     let length = formula.length
-    
+
+
     if (trigger != "=" && modifiedOutput == false)
         modifiedOutput = true
     else if (trigger != "=" && modifiedOutput == true)
@@ -33,6 +186,53 @@ function read(event) {
 
     if (trigger == "C")
         reset()
+    else if (loc != length && keyboardAction == false && loc != undefined) {
+        lastFormula = formula
+        let potentialFormula = "0"
+        if (trigger == "( )" || trigger == "+/-")
+            return 0
+        if (loc != endloc) {
+            if (loc == 0) {
+                potentialFormula = trigger + lastFormula.slice(endloc)
+            }
+            else {
+                potentialFormula = lastFormula.slice(0, loc) + trigger + lastFormula.slice(endloc)
+            }    
+        }
+        else {
+            if (loc == 0) {
+                potentialFormula = trigger + lastFormula.slice(0)
+            }  
+            else {
+                potentialFormula = lastFormula.slice(0, loc) + trigger + lastFormula.slice(loc)
+            } 
+        }
+        setScreen("0")
+        let reverseIndex = length - endloc
+        loc = undefined
+        let potentialFormulaLen = potentialFormula.length
+        for (let i = 0; i < potentialFormulaLen; i++) {
+            if (potentialFormula[i] == "e" && (potentialFormula[i + 1] == "+" || potentialFormula[i + 1] == "-")) {
+                setScreen(document.querySelector('#display').value + potentialFormula[i] + potentialFormula[i + 1])
+                i++
+                continue
+            }
+            let run = read(potentialFormula[i])
+            if (run == 1) {
+                if (lastFormula == "")
+                    setScreen("0")
+                else
+                    setScreen(lastFormula)
+                return 1
+            }
+        }
+        formula = document.querySelector('#display').value
+        length = formula.length
+        endloc = length - reverseIndex
+        loc = endloc
+        input.setSelectionRange(loc, loc)
+        return 0
+    }
     else if (trigger == "⌫") {
         if (formula == "ERROR" || formula == "Infinity" || formula == "‑Infinity")
             reset()
@@ -62,8 +262,6 @@ function read(event) {
                 }
                 operationPresent = true
             }
-            else if (formula[i] == "%" && i == length - 1)
-                operationPresent = true
         }
         if (operationPresent) {
             modifiedOutput = false
@@ -88,11 +286,14 @@ function read(event) {
                     break
                 }
             }
-            formula = formula + "\n" + lastOperation
+            let testFormula = formula + lastOperation
+            if (testFormula.length > 22)
+                testFormula = formula + "\n" + lastOperation
+            formula = testFormula
             operationPresent = true
         }
         let preFormula = formula
-        if (operationPresent) {
+        if (operationPresent || formula[length - 1] == "%") {
             formula = calculate(parse(formula))
             formula = fancy(formula)
         }
@@ -182,14 +383,14 @@ function read(event) {
             formula = formula.slice(0, length - 1) + "x("
         else if (formula[length - 1] == "." && sumRight < sumLeft)
             formula = formula.slice(0, length - 1) + ")"
-        else if (typeId(formula[length - 1]) != 0 && sumLeft == sumRight)
+        else if (typeId(formula[length - 1]) != 0 && sumLeft == sumRight && trigger != ")")
             formula = formula + "x("
         else if (typeId(formula[length - 1]) == 0 && sumLeft == sumRight)
             formula = formula + "("
-        else if (typeId(formula[length - 1]) == 1)
+        else if (typeId(formula[length - 1]) == 1 && sumLeft > sumRight)
             formula = formula + ")"
-        else if (typeId(formula[length - 1]) == -1) {
-            if (formula[length - 1] == ")")
+        else if (typeId(formula[length - 1]) == 2) {
+            if (formula[length - 1] == ")" && sumLeft > sumRight)
                 formula = formula + ")"
             else
                 formula = formula + "("
@@ -332,13 +533,14 @@ function read(event) {
     }
     
     formula = fancy(formula)
+    length = formula.length
     let postFormula = formula
     let errorCode = 0
-    if (preFormula == postFormula)
+    if (preFormula == postFormula && trigger != "⌫" && trigger != "C" && trigger != "0")
         return 1
     else
         errorCode = 0
-    document.querySelector('#display').value = formula
+    setScreen(formula)
     if (trigger == "=" || trigger == "C" || formula == "0")
         preCalc("=")
     else
@@ -355,7 +557,7 @@ function resize() {
     let display = document.getElementById('display')
     let fontSize = window.getComputedStyle(display, null).getPropertyValue('font-size')
     fontSize = Number(fontSize.slice(0, fontSize.length - 2))
-    if (!(display.scrollWidth > display.clientWidth) && fontSize < 29)
+    if (!(display.scrollWidth >= display.clientWidth) && fontSize < 30)
         display.style.fontSize = "30px"
     else {
         while (display.scrollWidth > display.clientWidth) {
@@ -394,10 +596,15 @@ function calcHistory(event) {
         let triggerLen = trigger.length
         let display = document.querySelector('#display').value
         for (let i = 0; i < triggerLen; i++) {
+            if (trigger[i] == "e") {
+                setScreen(document.querySelector('#display').value + trigger[i] + trigger[i+1])
+                i++
+                continue
+            }
             let run = read(trigger[i])
             if (run == 1) {
                 if (display != document.querySelector('#display').value)
-                    document.querySelector('#display').value = display
+                    setScreen(display)
                 break
             }
         }
@@ -857,15 +1064,17 @@ function precision(num) {
     return num
 }
 
-// Returns 0 if value is a mathematical operator, 1 if it's a number/numeric syntax, and -1 if it's neither.
+// Returns 0 if value is a mathematical operator, 1 if it's a number/numeric syntax, 2 if it's paranthesis,  and -1 if it's neither.
 function typeId (value) {
     if (value != undefined) {
         if (value == "\n")
             return -1
         if (!isNaN(Number(value)) || value == "%" || value == "." || value == "," || value == "e")
             return 1
+        if (value == "(" || value == ")") 
+            return 2
     }
-    let operators = ["x", "+", "‑", "÷", "/", "-"]
+    let operators = ["x", "+", "‑", "÷", "/", "-", "*"]
     let operatorsLen = operators.length
     for (let i = 0; i < operatorsLen; i++) {
         if (value == operators[i])
