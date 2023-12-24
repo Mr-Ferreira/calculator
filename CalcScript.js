@@ -1,6 +1,5 @@
 let modifiedOutput = undefined
 let formula = "0"
-let lastFormula = ""
 let lastTrigger = ""
 let lastOperation = ""
 let loc = 1
@@ -104,22 +103,28 @@ function read(event) {
         }
     }
     else if ((loc != length && loc != undefined) || pastedTrigger) {
-        lastFormula = formula
+        let lastFormula = formula
+        let reverseIndex = lastFormula.length - endloc
+        let savedLoc = endloc
+        function resetRemain() {
+            cursorPresent = false
+                if (lastFormula == "")
+                    reset()
+                else {
+                    document.querySelector('#display').value = lastFormula
+                    loc = savedLoc
+                    endloc = savedLoc
+                    input.setSelectionRange(loc, loc)
+                } 
+        }
+        
         let potentialFormula = "0"
         if (trigger == "( )" || trigger == "+/-") {
-            cursorPresent = false
-            if (lastFormula != "")
-                setScreen(lastFormula)
-            else
-                reset()
+            resetRemain()
             return 1
         }   
         else if (loc != 0 && (lastFormula[loc - 1] == "(" || lastFormula[loc - 1] == ")") && (lastFormula[endloc] == "(" || lastFormula[endloc] == ")")) {
-            cursorPresent = false
-            if (lastFormula != "")
-                setScreen(lastFormula)
-            else
-                reset()
+            resetRemain()
             return 1
         }
             
@@ -139,8 +144,6 @@ function read(event) {
                 potentialFormula = lastFormula.slice(0, loc) + trigger + lastFormula.slice(loc)
             } 
         }
-        let reverseIndex = lastFormula.length - endloc
-        let savedLoc = endloc
         reset()
         let potentialFormulaLen = potentialFormula.length
         
@@ -152,15 +155,7 @@ function read(event) {
             }
             let run = read(potentialFormula[i])
             if (run == 1) {
-                cursorPresent = false
-                if (lastFormula == "")
-                    reset()
-                else {
-                    document.querySelector('#display').value = lastFormula
-                    loc = savedLoc
-                    endloc = savedLoc
-                    input.setSelectionRange(loc, loc)
-                } 
+                resetRemain()
                 return 1
             }
         }
@@ -504,25 +499,8 @@ function calcHistory(event) {
     else {
         if (trigger[0] == "=")
             trigger = trigger.slice(1)
-        
-        let triggerLen = trigger.length
-        let display = document.querySelector('#display').value
-        for (let i = 0; i < triggerLen; i++) {
-            if (trigger[i] == "e") {
-                setScreen(document.querySelector('#display').value + trigger[i] + trigger[i+1])
-                i++
-                continue
-            }
-            let run = read(trigger[i])
-            if (run == 1) {
-                if (display != document.querySelector('#display').value)
-                    setScreen(display)
-                break
-            }
-        }
-        preCalc(document.querySelector('#display').value)
+        read(trigger)
     }
-    resize()
 }
 
 // Automatically shows a preview of the current calculation being typed
