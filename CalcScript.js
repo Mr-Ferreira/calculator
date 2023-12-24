@@ -108,14 +108,16 @@ function read(event) {
         let savedLoc = endloc
         function resetRemain() {
             cursorPresent = false
-                if (lastFormula == "")
-                    reset()
-                else {
-                    document.querySelector('#display').value = lastFormula
-                    loc = savedLoc
-                    endloc = savedLoc
-                    input.setSelectionRange(loc, loc)
-                } 
+            if (lastFormula == "")
+                reset()
+            else {
+                document.querySelector('#display').value = lastFormula
+                loc = savedLoc
+                endloc = savedLoc
+                input.setSelectionRange(loc, loc)
+            }
+            preCalc(document.querySelector('#display').value)
+            resize()
         }
         
         let potentialFormula = "0"
@@ -418,7 +420,6 @@ function read(event) {
     lastTrigger = trigger
     let display = document.getElementById('display')
     display.scrollTop = display.scrollHeight
-    resize()
     return errorCode
 }
 
@@ -450,6 +451,7 @@ function setScreen(string) {
         endloc = strLen
     }
     input.setSelectionRange(loc, loc)
+    resize()
 }
 
 // Gets cursor location when display is clicked on
@@ -464,7 +466,7 @@ function resize() {
     let display = document.getElementById('display')
     let fontSize = window.getComputedStyle(display, null).getPropertyValue('font-size')
     fontSize = Number(fontSize.slice(0, fontSize.length - 2))
-    if (!(display.scrollWidth >= display.clientWidth) && fontSize < 30)
+    if (display.scrollWidth <= display.clientWidth && fontSize < 30)
         display.style.fontSize = "30px"
     else {
         while (display.scrollWidth > display.clientWidth) {
