@@ -21,7 +21,11 @@ function read(event) {
         trigger = "x"
     else if (trigger == "/")
         trigger = "÷"
-    else if (trigger != "( )" && trigger != "+/-" && trigger.length > 1)
+    else if (trigger == "( )")
+        trigger = "("
+    else if (trigger == "+/-")
+        trigger = "z"
+    else if (trigger.length > 1)
         pastedTrigger = true
     
 
@@ -121,11 +125,7 @@ function read(event) {
         }
         
         let potentialFormula = "0"
-        if (trigger == "( )" || trigger == "+/-") {
-            resetRemain()
-            return 1
-        }   
-        else if (loc != 0 && (lastFormula[loc - 1] == "(" || lastFormula[loc - 1] == ")") && (lastFormula[endloc] == "(" || lastFormula[endloc] == ")")) {
+        if (loc != 0 && (lastFormula[loc - 1] == "(" || lastFormula[loc - 1] == ")") && (lastFormula[endloc] == "(" || lastFormula[endloc] == ")") && typeId(trigger) != 2) {
             resetRemain()
             return 1
         }
@@ -180,7 +180,7 @@ function read(event) {
     }
     else if (formula == "ERROR" || formula == "Infinity" || formula == "‑Infinity") 
         return 1
-    else if (trigger == "+/-") {
+    else if (trigger == "+/-" || trigger == "z") {
         if (formula[length - 1] == "e") 
                 return 1
         if (formula == "0")
@@ -466,7 +466,7 @@ function resize() {
     let display = document.getElementById('display')
     let fontSize = window.getComputedStyle(display, null).getPropertyValue('font-size')
     fontSize = Number(fontSize.slice(0, fontSize.length - 2))
-    if (display.scrollWidth <= display.clientWidth && fontSize < 30)
+    if (display.scrollWidth < display.clientWidth && fontSize < 30)
         display.style.fontSize = "30px"
     else {
         while (display.scrollWidth > display.clientWidth) {
