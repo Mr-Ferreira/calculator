@@ -131,6 +131,8 @@ function read(event) {
         }
             
         if (loc != endloc) {
+            if (trigger == "⌫")
+                trigger = ""
             if (loc == 0) {
                 potentialFormula = trigger + lastFormula.slice(endloc)
             }
@@ -457,8 +459,10 @@ function setScreen(string) {
 // Gets cursor location when display is clicked on
 function focused() {
     cursorPresent = true
-    loc = input.selectionStart
-    endloc = input.selectionEnd
+    document.addEventListener("mouseup", function(event) {
+        loc = input.selectionStart
+        endloc = input.selectionEnd
+    })
 }
 
 // Resizes the font based on content width
