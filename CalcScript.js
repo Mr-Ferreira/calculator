@@ -152,7 +152,7 @@ function read(event) {
         let potentialFormulaLen = potentialFormula.length
         
         for (let i = 0; i < potentialFormulaLen; i++) {
-            if (potentialFormula[i] == "e" && (potentialFormula[i + 1] == "+" || potentialFormula[i + 1] == "-")) {
+            if (potentialFormula[i] == "e" && (potentialFormula[i + 1] == "+" || potentialFormula[i + 1] == "-" || potentialFormula[i + 1] == "‑")) {
                 setScreen(document.querySelector('#display').value + potentialFormula[i] + potentialFormula[i + 1])
                 i++
                 continue
