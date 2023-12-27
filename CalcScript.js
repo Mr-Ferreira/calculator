@@ -185,6 +185,10 @@ function read(event) {
     else if (trigger == "+/-" || trigger == "z") {
         if (formula[length - 1] == "e") 
                 return 1
+        if (length - 2 >= 0 && typeId(formula[length - 1]) == 0) {
+            if (formula[length - 2] == "e")
+                return 1
+        }
         if (formula == "0")
             formula = "(‑"
         else if (formula == "(‑")
@@ -239,6 +243,10 @@ function read(event) {
     else if (trigger == "( )" || trigger == "(" || trigger == ")") {
         if (formula[length - 1] == "e") 
                 return 1
+        if (length - 2 >= 0 && typeId(formula[length - 1]) == 0) {
+            if (formula[length - 2] == "e")
+                return 1
+        }
         let sumLeft = 0
         let sumRight = 0
 
@@ -334,9 +342,7 @@ function read(event) {
                     formula = formula.slice(0, (length - 1)) + trigger
             }
             else {
-                if (formula[length - 1] == ".")
-                    formula = formula.slice(0, length - 1) + trigger
-                else if (formula[length - 1] == "(")
+                if (formula[length - 1] == "(")
                     return 1
                 else
                     formula = formula + trigger
