@@ -313,7 +313,7 @@ function read(event) {
                 }
             }
         }
-        else if (typeId(formula[length - 1]) == 0) {
+        else if (typeId(formula[length - 1]) == 0 || formula[length - 1] == "(") {
             if (length - 1 > 0) {
                 if (formula[length - 2] == "e")
                     return 1
