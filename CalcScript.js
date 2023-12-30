@@ -138,6 +138,11 @@ function read(event) {
                 i++
                 continue
             }
+            if (potentialFormula[i] == "<") {
+                potentialFormula = potentialFormula.slice(0, i) + "\n" + potentialFormula.slice(i + 4)
+                potentialFormulaLen -= 3
+            }
+            
             let run = read(potentialFormula[i])
             if (run == 1 && potentialFormula[i] == "0" && trigger == "⌫") 
                 continue
