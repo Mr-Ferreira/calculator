@@ -129,7 +129,9 @@ function read(event) {
         }
         
         let potentialFormula = "0"
-        if (loc != 0 && (lastFormula[loc - 1] == "(" || lastFormula[loc - 1] == ")") && (lastFormula[endloc] == "(" || lastFormula[endloc] == ")") && typeId(trigger) != 2) {
+        if (loc != 0 && (lastFormula[loc - 1] == "(" || lastFormula[loc - 1] == ")") && 
+            (lastFormula[endloc] == "(" || lastFormula[endloc] == ")") && typeId(trigger) != 2 && 
+            trigger != "‑" && trigger != "-") {
             resetRemain()
             return 1
         }
