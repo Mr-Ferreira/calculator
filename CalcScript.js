@@ -193,7 +193,12 @@ function read(event) {
                 return 1
             }
         }
-        endloc = document.querySelector('#display').value.length - reverseIndex
+        let displayLen = document.querySelector('#display').value.length
+        endloc = displayLen - reverseIndex
+        if (endloc > displayLen)
+            endloc = displayLen
+        else if (endloc < 0)
+            endloc = 0
         loc = endloc
         input.setSelectionRange(loc, loc)
         resize()
