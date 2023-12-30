@@ -16,14 +16,12 @@ function read(event) {
         trigger = event
     else
         trigger = event.srcElement.innerHTML
-    if (trigger == "," || trigger == "\n" || trigger == " ")
+    if (trigger == "," || trigger == "\n")
         return 0
-    if (trigger == "*")
-        trigger = "x"
-    else if (trigger == "/")
-        trigger = "÷"
+    if (trigger == "-")
+        trigger = "‑"
     else if (trigger == "( )")
-        trigger = "("
+        trigger = "p"
     else if (trigger == "+/-")
         trigger = "z"
     else if (trigger.length > 1)
@@ -128,14 +126,7 @@ function read(event) {
             resize()
         }
         
-        let potentialFormula = "0"
-        if (loc != 0 && (lastFormula[loc - 1] == "(" || lastFormula[loc - 1] == ")") && 
-            (lastFormula[endloc] == "(" || lastFormula[endloc] == ")") && typeId(trigger) != 2 && 
-            trigger != "‑" && trigger != "-") {
-            resetRemain()
-            return 1
-        }
-            
+        let potentialFormula = "0" 
         if (loc != endloc) {
             if (trigger == "⌫")
                 trigger = ""
@@ -172,8 +163,8 @@ function read(event) {
         endloc = document.querySelector('#display').value.length - reverseIndex
         loc = endloc
         input.setSelectionRange(loc, loc)
-        preCalc(document.querySelector('#display').value)
         resize()
+        preCalc(document.querySelector('#display').value)
         return 0
     }
     else if (trigger == "⌫") {
@@ -192,7 +183,7 @@ function read(event) {
     }
     else if (formula == "ERROR" || formula == "Infinity" || formula == "‑Infinity") 
         return 1
-    else if (trigger == "+/-" || trigger == "z") {
+    else if (trigger == "z") {
         if (formula[length - 1] == "e") 
                 return 1
         if (length - 2 >= 0 && typeId(formula[length - 1]) == 0) {
@@ -250,9 +241,9 @@ function read(event) {
             }
         }
     }
-    else if (trigger == "( )" || trigger == "(" || trigger == ")") {
+    else if (trigger == "p" || trigger == "(" || trigger == ")") {
         if (formula[length - 1] == "e") 
-                return 1
+            return 1
         if (length - 2 >= 0 && typeId(formula[length - 1]) == 0) {
             if (formula[length - 2] == "e")
                 return 1
@@ -270,21 +261,31 @@ function read(event) {
 
         if (formula == "0") 
             formula = "("
-        else if (typeId(formula[length - 1]) != 0 && sumLeft == sumRight && trigger != ")")
-            formula = formula + "x("
-        else if (typeId(formula[length - 1]) == 0 && sumLeft == sumRight)
-            formula = formula + "("
-        else if (typeId(formula[length - 1]) == 1 && sumLeft > sumRight)
-            formula = formula + ")"
-        else if (typeId(formula[length - 1]) == 2) {
-            if (formula[length - 1] == ")" && sumLeft > sumRight)
+        else if (trigger == "p" || trigger == ")") {
+            if (typeId(formula[length - 1]) != 0 && sumLeft == sumRight && trigger != ")")
+                formula = formula + "x("
+            else if (typeId(formula[length - 1]) == 0 && sumLeft == sumRight)
+                formula = formula + "("
+            else if (typeId(formula[length - 1]) == 1 && sumLeft > sumRight)
                 formula = formula + ")"
+            else if (typeId(formula[length - 1]) == 2) {
+                if (formula[length - 1] == ")" && sumLeft > sumRight)
+                    formula = formula + ")"
+                else
+                    formula = formula + "("
+            }
+            else if (typeId(formula[length - 1]) == 0) {
+                formula = formula + "("
+            }  
+        }
+        else if (trigger == "(") {
+            if (typeId(formula[length - 1]) == 1) 
+                formula = formula + "x("
+            else if (formula[length - 1] == ")")
+                return 1
             else
                 formula = formula + "("
         }
-        else if (typeId(formula[length - 1]) == 0) {
-            formula = formula + "("
-        }  
     }
     else if (trigger == "%") {
         if (formula != "0" && typeId(formula[length - 1]) != 0 && formula[length - 1] != "e") {
@@ -357,14 +358,14 @@ function read(event) {
         else if (formula == "0" && trigger == "‑")
             formula = "‑"
     }
-    else if (typeId(trigger) == 1 && length > 1 && (formula[length - 1] == "%" || formula[length - 1] == ")"))
-        formula = formula + "x" + trigger
     else if (typeId(trigger) == 1){
         if (formula[length - 1] == "e") 
                 return 1
         if (modifiedOutput == true)
             reset()
-        if (formula == "0" || formula == "ERROR")
+        if (length > 1 && (formula[length - 1] == "%" || formula[length - 1] == ")")) 
+            formula = formula + "x" + trigger
+        else if (formula == "0" || formula == "ERROR")
             formula = trigger
         else if (typeId(lastTrigger) == 0 && trigger == "0")
             formula = formula + trigger
@@ -421,6 +422,7 @@ function read(event) {
     setScreen(formula)
     length = formula.length
     let postFormula = formula
+
     let errorCode = 0
     if (preFormula == postFormula && trigger != "⌫" && trigger != "C" && trigger != "0")
         return 1
@@ -431,9 +433,9 @@ function read(event) {
         preCalc("=")
     else
         preCalc(formula)
+
     lastTrigger = trigger
-    let display = document.getElementById('display')
-    display.scrollTop = display.scrollHeight
+    document.getElementById('display').scrollTop = display.scrollHeight
     return errorCode
 }
 
@@ -475,17 +477,13 @@ function focused() {
 // Resizes the font based on content width
 function resize() {
     let display = document.getElementById('display')
-    let fontSize = window.getComputedStyle(display, null).getPropertyValue('font-size')
-    fontSize = Number(fontSize.slice(0, fontSize.length - 2))
-    if (display.scrollWidth <= display.clientWidth && fontSize < 30)
-        display.style.fontSize = "30px"
-    else {
-        while (display.scrollWidth > display.clientWidth) {
-            fontSize--
-            if (fontSize < 20)
-                return
-            display.style.fontSize = fontSize.toString() + "px"
-        }
+    let fontSize = 30
+    display.style.fontSize = "30px"
+    while (display.scrollWidth > display.clientWidth) {
+        fontSize--
+        if (fontSize < 20)
+            return
+        display.style.fontSize = fontSize.toString() + "px"
     }
 }
 
