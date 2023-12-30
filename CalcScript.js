@@ -7,24 +7,10 @@ let cursorPresent = false
 let input = document.getElementById("display")
 input.setSelectionRange(1, 1)
 
-// Allows keyboard input to act as numpad button click, enables arrow key usage
+// Allows keyboard input to act as numpad button click
 document.addEventListener("keyup", function(event) {
     let trigger = event.key
-
-    if (trigger == "ArrowLeft" || trigger== "ArrowRight"){
-        let length = document.querySelector('#display').value.length
-        if (trigger == "ArrowLeft" && loc > 0)
-            loc--
-        else if (trigger == "ArrowRight" && loc < length)
-            loc++
-
-        if (loc != length)
-            cursorPresent = true
-        endloc = loc
-        input.setSelectionRange(loc, loc)
-        return
-    }
-    else if (trigger == "(" || trigger == ")")
+    if (trigger == "(" || trigger == ")")
         trigger = "( )"
     else if (trigger == "*")
         trigger = "x"
@@ -37,6 +23,23 @@ document.addEventListener("keyup", function(event) {
     else if (typeId(trigger) == -1)
         return
     document.getElementById(trigger).click()
+})
+
+// Enables arrow key usage
+document.addEventListener("keydown", function(event) {
+    let trigger = event.key
+    if (trigger == "ArrowLeft" || trigger== "ArrowRight"){
+        let length = document.querySelector('#display').value.length
+        if (trigger == "ArrowLeft" && loc > 0)
+            loc--
+        else if (trigger == "ArrowRight" && loc < length)
+            loc++
+
+        if (loc != length)
+            cursorPresent = true
+        endloc = loc
+        input.setSelectionRange(loc, loc)
+    }
 })
 
 // trigger function that designates the formula set-up based on button input.
