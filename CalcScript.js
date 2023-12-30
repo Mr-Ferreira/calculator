@@ -8,13 +8,20 @@ let input = document.getElementById("display")
 input.setSelectionRange(1, 1)
 
 // Allows keyboard input to act as numpad button click
+let control = false
 document.addEventListener("keyup", function(event) {
     let trigger = event.key
-    if (trigger == "(" || trigger == ")")
+    if (trigger == "Control" || trigger == "Command") {
+        setTimeout(() => {
+            control = false
+        }, 150)
+        return
+    }
+    else if (trigger == "(" || trigger == ")")
         trigger = "( )"
     else if (trigger == "*")
         trigger = "x"
-    else if (trigger == "c" || trigger == "C")
+    else if ((trigger == "c" || trigger == "C") && control == false)
         trigger = "C"
     else if (trigger == "Enter")
         trigger = "="
@@ -28,7 +35,9 @@ document.addEventListener("keyup", function(event) {
 // Enables arrow key usage
 document.addEventListener("keydown", function(event) {
     let trigger = event.key
-    if (trigger == "ArrowLeft" || trigger== "ArrowRight"){
+    if (trigger == "Control" || trigger == "Command")
+        control = true
+    else if (trigger == "ArrowLeft" || trigger== "ArrowRight"){
         let length = document.querySelector('#display').value.length
         if (trigger == "ArrowLeft" && loc > 0)
             loc--
@@ -490,11 +499,9 @@ function reset() {
     formula = "0"
     lastOperation = ""
     display.style.fontSize = "30px"
+    cursorPresent = false
     setScreen("0")
     document.querySelector('#answerDisplay').value = "= "
-    loc = 1
-    endloc = 1
-    cursorPresent = false
 }
 
 // Changes what is on the display
