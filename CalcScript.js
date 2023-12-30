@@ -95,13 +95,14 @@ function read(event) {
             formula = testFormula
             operationPresent = true
         }
-        let preFormula = formula
+        let preFormula
+        let postFormula
         if (operationPresent || formula[length - 1] == "%") {
             formula = fancy(formula)
-            formula = calculate(parse(formula))
-            formula = fancy(formula)
+            preFormula = formula
+            formula = fancy(calculate(parse(formula)))
+            postFormula = formula
         }
-        let postFormula = formula
         if (preFormula != postFormula && formula != "ERROR") {
             let historyIndex = document.getElementById("listContainer").childElementCount - 2
             let lastHistOperation = ""
