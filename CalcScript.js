@@ -444,7 +444,7 @@ function read(event) {
                     if (typeId(formula[i]) == 1 && formula[i] != "," && formula[i] != ".")
                         digitCount++
                     if (decDigitCount >= 10 || digitCount >= 15 || eDigitCount >= 3)
-                        break
+                        return 1
                 }
                 if (length > 1 && formula[length - 1] == "0" && typeId(formula[length - 2]) == 0 && trigger == "0")
                     return 1
