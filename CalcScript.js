@@ -6,6 +6,9 @@ let loc = 1
 let endloc = 1
 let cursorPresent = false
 let input = document.getElementById("display")
+input.addEventListener("keyup", function(event) {
+    preCalc(document.querySelector('#display').value)
+})
 
 // trigger function that designates the formula set-up based on button input.
 function read(event) {
@@ -30,6 +33,8 @@ function read(event) {
     
 
     formula = document.querySelector('#display').value
+    if (formula == "")
+        reset()
     let preFormula = formula
     let length = formula.length
     if (loc == length)
@@ -540,9 +545,9 @@ function preCalc (formula) {
                 operationPresent = true
         }
     }
-    if (operationPresent) { 
-        formula = calculate(parse(formula))
+    if (operationPresent) {
         formula = fancy(formula)
+        formula = fancy(calculate(parse(formula)))
         if (formula == "ERROR")
             formula = ""
     }
