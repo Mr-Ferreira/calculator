@@ -93,8 +93,8 @@ function read(event) {
         let preFormula
         let postFormula
         if (operationPresent || formula[length - 1] == "%") {
-            preFormula = formula
             formula = fancy(calculate(parse(formula)))
+            preFormula = completedFormula
             postFormula = formula
         }
         if (preFormula != postFormula && formula != "ERROR") {
@@ -455,6 +455,8 @@ function reset() {
     loc = 1
     endloc = 1
     cursorPresent = false
+    modifiedColorVal = false
+    completedFormula = "0"
 }
 
 // Changes what is on the display
@@ -612,15 +614,18 @@ function buttonClick(event) {
 }
 
 // Parses the formula to be later solved.
+let completedFormula = "0"
 function parse (formula) {
     let parsedFormula = [""]
     let parsedFormulaIndex = 0
-    function next () {
+
+    function next() {
         if (parsedFormula[parsedFormulaIndex] != "") {
             parsedFormula.push("")
             parsedFormulaIndex++
         }
     }
+
     let parsedFormulaLen = parsedFormula.length
     let length = formula.length
     for (let i = 0; i < length; i++) {
@@ -713,7 +718,7 @@ function parse (formula) {
                     parsedFormula[parsedFormulaIndex] = percentageOfFormula
                 }
             }
-            else if (formula[i] == "," || formula[i] == "\n") 
+            else if (formula[i] == "," || formula[i] == "\n")
                 continue
             else if (formula[i] == "e") {
                 if (formula[i + 1] == "-")
@@ -743,12 +748,11 @@ function parse (formula) {
                 parsedFormula[parsedFormulaIndex] = "("
             else if (formula[i] == ")") 
                 parsedFormula[parsedFormulaIndex] = ")"
-            else if (i == (length - 1)) {
+            else if (i == (length - 1)) 
                 return "ERROR"
-            }  
         } 
     }
-    //
+
     let sumLeft = 0
     let sumRight = 0
     parsedFormulaLen = parsedFormula.length
@@ -758,10 +762,14 @@ function parse (formula) {
         else if (parsedFormula[i] == ")")
             sumRight++
     }
+    completedFormula = formula
     while (sumLeft > sumRight) {
-        parsedFormula.push(")")
+        next()
+        completedFormula = completedFormula + ")"
+        parsedFormula[parsedFormulaIndex] = ")"
         sumRight++
     }
+
     return parsedFormula
 }
 
@@ -1001,7 +1009,7 @@ function typeId (value) {
 
 // Adds commas for every 3 integer digits, adds/removes line breaks
 function fancy (formula) {
-    length = formula.length
+    let length = formula.length
 
     // adds line breaks
     length = formula.length
@@ -1070,12 +1078,10 @@ function fancy (formula) {
         if (formula[i] != "\n" && formula[i] != "," && decIndex == -1)
             nonFancy = nonFancy + formula[i]
         if (formula[i] == ".") {
-            decInNum = true
             nonFancy = nonFancy.slice(0, (nonFancy.length - 1))
             decIndex = i
         }
         if (typeId(formula[i]) == 0 || formula[i] == ")" || formula[i] == "%" || formula[i] == "(") {
-            decInNum = false
             nonFancy = ""
             newNumStartIndex = i
             decIndex = -1
