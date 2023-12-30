@@ -63,12 +63,6 @@ function read(event) {
                 operationPresent = true
             }
         }
-        for (let i = 0; i < length; i++) {
-            if (typeId(formula[i]) == -1) {
-                setScreen("ERROR")
-                return 1
-            }
-        }
         if (operationPresent) {
             modifiedOutput = false
             lastOperation = formula
@@ -101,7 +95,6 @@ function read(event) {
         let preFormula
         let postFormula
         if (operationPresent || formula[length - 1] == "%") {
-            formula = fancy(formula)
             preFormula = formula
             formula = fancy(calculate(parse(formula)))
             postFormula = formula
@@ -543,7 +536,6 @@ function preCalc (formula) {
         }
     }
     if (operationPresent) {
-        formula = fancy(formula)
         formula = fancy(calculate(parse(formula)))
         if (formula == "ERROR")
             formula = ""
