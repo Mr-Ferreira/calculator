@@ -450,6 +450,7 @@ function reset() {
     lastOperation = ""
     display.style.fontSize = "30px"
     setScreen("0")
+    document.querySelector('#answerDisplay').value = "= "
     loc = 1
     endloc = 1
     cursorPresent = false
