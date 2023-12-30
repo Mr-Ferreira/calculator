@@ -6,6 +6,7 @@ let loc = 1
 let endloc = 1
 let cursorPresent = false
 let input = document.getElementById("display")
+input.setSelectionRange(loc, loc)
 
 // trigger function that designates the formula set-up based on button input.
 function read(event) {
