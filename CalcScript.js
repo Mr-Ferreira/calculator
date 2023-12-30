@@ -29,7 +29,7 @@ function read(event) {
         pastedTrigger = true
     
     formula = document.querySelector('#display').value
-    
+
     let preFormula = formula
     let length = formula.length
 
@@ -119,23 +119,20 @@ function read(event) {
         if (loc != endloc) {
             if (trigger == "⌫")
                 trigger = ""
-            if (loc == 0) {
+            
+            if (loc == 0) 
                 potentialFormula = trigger + lastFormula.slice(endloc)
-            }
-            else {
+            else 
                 potentialFormula = lastFormula.slice(0, loc) + trigger + lastFormula.slice(endloc)
-            }    
         }
         else {
-            if (loc == 0) {
+            if (loc == 0) 
                 potentialFormula = trigger + lastFormula.slice(0)
-            }  
-            else {
+            else
                 potentialFormula = lastFormula.slice(0, loc) + trigger + lastFormula.slice(loc)
-            } 
         }
-        reset()
         let potentialFormulaLen = potentialFormula.length
+        reset()
         
         for (let i = 0; i < potentialFormulaLen; i++) {
             if (potentialFormula[i] == "e" && (potentialFormula[i + 1] == "+" || potentialFormula[i + 1] == "-" || potentialFormula[i + 1] == "‑")) {
