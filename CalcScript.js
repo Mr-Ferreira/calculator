@@ -7,6 +7,38 @@ let cursorPresent = false
 let input = document.getElementById("display")
 input.setSelectionRange(1, 1)
 
+// Allows keyboard input to act as numpad button click, enables arrow key usage
+document.addEventListener("keyup", function(event) {
+    let trigger = event.key
+
+    if (trigger == "ArrowLeft" || trigger== "ArrowRight"){
+        let length = document.querySelector('#display').value.length
+        if (trigger == "ArrowLeft" && loc > 0)
+            loc--
+        else if (trigger == "ArrowRight" && loc < length)
+            loc++
+
+        if (loc != length)
+            cursorPresent = true
+        endloc = loc
+        input.setSelectionRange(loc, loc)
+        return
+    }
+    else if (trigger == "(" || trigger == ")")
+        trigger = "( )"
+    else if (trigger == "*")
+        trigger = "x"
+    else if (trigger == "c" || trigger == "C")
+        trigger = "C"
+    else if (trigger == "Enter")
+        trigger = "="
+    else if (trigger == "Backspace")
+        trigger = "backspace"
+    else if (typeId(trigger) == -1)
+        return
+    document.getElementById(trigger).click()
+})
+
 // trigger function that designates the formula set-up based on button input.
 function read(event) {
     let trigger = ""
@@ -455,8 +487,6 @@ function reset() {
     loc = 1
     endloc = 1
     cursorPresent = false
-    modifiedColorVal = false
-    completedFormula = "0"
 }
 
 // Changes what is on the display
@@ -583,7 +613,8 @@ function appendHistory (string) {
 let modifiedColorVal = false
 function buttonClick(event) {
     let color
-    if (!modifiedColorVal) {
+    if (modifiedColorVal == false) {
+        modifiedColorVal = true
         color = window.getComputedStyle(event.srcElement , null).getPropertyValue("background-color")
         let colorLen = color.length
         let colorVal = [""]
@@ -604,7 +635,6 @@ function buttonClick(event) {
         
         event.srcElement.style.backgroundColor = "rgb(" + colorVal[0] + "," + colorVal[1] + "," + colorVal[2] + ")"
         event.srcElement.style.borderStyle = "inset"
-        modifiedColorVal = true
         setTimeout(() => {
             event.srcElement.style.backgroundColor = color
             event.srcElement.style.borderStyle = "outset"
