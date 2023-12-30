@@ -559,6 +559,7 @@ function appendHistory (string) {
     button.setAttribute("id", "listedHistory")
     button.setAttribute("onclick", "buttonClick(event);calcHistory(event)")
     button.setAttribute("type", "button")
+    button.setAttribute("style", "border-radius: 2%")
 
     let stringLen = string.length
     let startOfChunk = 0
