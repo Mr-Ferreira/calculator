@@ -119,7 +119,7 @@ function read(event) {
         if (loc != endloc) {
             if (trigger == "⌫")
                 trigger = ""
-            
+
             if (loc == 0) 
                 potentialFormula = trigger + lastFormula.slice(endloc)
             else 
@@ -374,45 +374,50 @@ function read(event) {
                     naturalNumOrDecimal = true
                     break
                 }
+                if (typeId(formula[i]) == 0 || typeId(formula[i]) == 2)
+                    break
             }
 
             if (trigger == "0" && naturalNumOrDecimal == false && formula[length - 1] == "0")
                 return 1
-
-            // Counts the digits in the last number in the formula
-            let digitCount = 0
-            let decDigitCount = 0
-            // eDigitCount set to -1 to offset cases where e is the last element in the formula
-            let eDigitCount = -1
-            for (let i = length - 1; i >= 0; i--) {
-                if (typeId(formula[i]) == 0) {
-                    if (i > 0) {
-                        if (formula[i - 1] != "e")
-                            break
-                        else {
-                            i--
-                            eDigitCount = digitCount
-                            continue
+            else if (naturalNumOrDecimal == false && formula[length - 1] == "0")
+               formula = formula.slice(0, length - 1) + trigger
+            else {
+                // Counts the digits in the last number in the formula
+                let digitCount = 0
+                let decDigitCount = 0
+                // eDigitCount set to -1 to offset cases where e is the last element in the formula
+                let eDigitCount = -1
+                for (let i = length - 1; i >= 0; i--) {
+                    if (typeId(formula[i]) == 0) {
+                        if (i > 0) {
+                            if (formula[i - 1] != "e")
+                                break
+                            else {
+                                i--
+                                eDigitCount = digitCount
+                                continue
+                            }
                         }
+                        else
+                            break
+                    }  
+                    else if (formula[i] == "." && eDigitCount == -1) {
+                        decDigitCount = digitCount
+                        continue
                     }
-                    else
+                    if (typeId(formula[i]) == 1 && formula[i] != "," && formula[i] != ".")
+                        digitCount++
+                    if (decDigitCount >= 10 || digitCount >= 15 || eDigitCount >= 3)
                         break
-                }  
-                else if (formula[i] == "." && eDigitCount == -1) {
-                    decDigitCount = digitCount
-                    continue
                 }
-                if (typeId(formula[i]) == 1 && formula[i] != "," && formula[i] != ".")
-                    digitCount++
-                if (decDigitCount >= 10 || digitCount >= 15 || eDigitCount >= 3)
-                    break
+                if (length > 1 && formula[length - 1] == "0" && typeId(formula[length - 2]) == 0 && trigger == "0")
+                    return 1
+                else if (length > 1 && formula[length - 1] == "0" && typeId(formula[length - 2]) == 0 && trigger != "0")
+                    formula = formula.slice(0, length - 1) + trigger
+                else if (digitCount < 15 && decDigitCount < 10 && eDigitCount < 3)
+                    formula = formula + trigger
             }
-            if (length > 1 && formula[length - 1] == "0" && typeId(formula[length - 2]) == 0 && trigger == "0")
-                return 1
-            else if (length > 1 && formula[length - 1] == "0" && typeId(formula[length - 2]) == 0 && trigger != "0")
-                formula = formula.slice(0, length - 1) + trigger
-            else if (digitCount < 15 && decDigitCount < 10 && eDigitCount < 3)
-                formula = formula + trigger
         }
     }
     
