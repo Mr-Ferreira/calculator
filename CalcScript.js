@@ -260,10 +260,6 @@ function read(event) {
 
         if (formula == "0") 
             formula = "("
-        else if (formula[length - 1] == "." && sumRight == sumLeft) 
-            formula = formula.slice(0, length - 1) + "x("
-        else if (formula[length - 1] == "." && sumRight < sumLeft)
-            formula = formula.slice(0, length - 1) + ")"
         else if (typeId(formula[length - 1]) != 0 && sumLeft == sumRight && trigger != ")")
             formula = formula + "x("
         else if (typeId(formula[length - 1]) == 0 && sumLeft == sumRight)
