@@ -28,7 +28,21 @@
             <div id="calc">
                 <div id="displayAndSideButtons">
                     <div>
-                        <textarea type="text" id="display" autofocus onmousedown="focused();" onblur="this.focus();">0</textarea>
+                        <textarea 
+                            type="text" 
+                            id="display" 
+                            autofocus 
+                            onmousedown="focused();" 
+                            onblur="this.focus();"
+                            oncut="return false"
+                            onpaste="return false"
+                            onkeydown="return false;"
+                            style="user-drag: none;"
+                            ondragenter="return false;" 
+                            ondragleave="return false;" 
+                            ondragover="return false;" 
+                            ondrop="return false;">0</textarea>
+
                         <textarea type="text" id="answerDisplay" readonly>= </textarea>
                     </div>
                     <div>

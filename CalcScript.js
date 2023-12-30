@@ -6,9 +6,6 @@ let loc = 1
 let endloc = 1
 let cursorPresent = false
 let input = document.getElementById("display")
-input.addEventListener("keyup", function(event) {
-    preCalc(document.querySelector('#display').value)
-})
 
 // trigger function that designates the formula set-up based on button input.
 function read(event) {
@@ -33,8 +30,6 @@ function read(event) {
     
 
     formula = document.querySelector('#display').value
-    if (formula == "")
-        reset()
     let preFormula = formula
     let length = formula.length
     if (loc == length)
@@ -45,8 +40,10 @@ function read(event) {
     else if (trigger != "=" && modifiedOutput == true)
         modifiedOutput = undefined
 
-    if (trigger == "C")
+    if (trigger == "C") {
         reset()
+        return 0
+    }
     else if (trigger == "=") {
         length = formula.length
         let operationPresent = false
@@ -184,13 +181,17 @@ function read(event) {
         return 0
     }
     else if (trigger == "⌫") {
-        if (formula == "ERROR" || formula == "Infinity" || formula == "‑Infinity")
+        if (formula == "ERROR" || formula == "Infinity" || formula == "‑Infinity") {
             reset()
+            return 0
+        }
         else {
             formula = formula.slice(0, (length - 1))
             formula = fancy(formula)
-            if (formula == "") 
+            if (formula == "") {
                 reset()
+                return 0
+            }
         }
     }
     else if (formula == "ERROR" || formula == "Infinity" || formula == "‑Infinity") 
@@ -440,12 +441,6 @@ function read(event) {
     return errorCode
 }
 
-// Handles paste functionality
-input.addEventListener("paste", function(event) {
-    let clipboard = event.clipboardData.getData("text/plain")
-    read(clipboard)
-})
-
 // Resets global variables
 function reset() {
     lastTrigger = ""
@@ -485,7 +480,7 @@ function resize() {
     let display = document.getElementById('display')
     let fontSize = window.getComputedStyle(display, null).getPropertyValue('font-size')
     fontSize = Number(fontSize.slice(0, fontSize.length - 2))
-    if (display.scrollWidth < display.clientWidth && fontSize < 30)
+    if (display.scrollWidth <= display.clientWidth && fontSize < 30)
         display.style.fontSize = "30px"
     else {
         while (display.scrollWidth > display.clientWidth) {
