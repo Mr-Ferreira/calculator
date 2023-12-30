@@ -1,6 +1,5 @@
 let modifiedOutput = undefined
 let formula = "0"
-let lastTrigger = ""
 let lastOperation = ""
 let loc = 1
 let endloc = 1
@@ -16,8 +15,10 @@ function read(event) {
         trigger = event
     else
         trigger = event.srcElement.innerHTML
+
     if (trigger == "," || trigger == "\n")
         return 0
+
     if (trigger == "-")
         trigger = "‑"
     else if (trigger == "( )")
@@ -27,10 +28,11 @@ function read(event) {
     else if (trigger.length > 1)
         pastedTrigger = true
     
-
     formula = document.querySelector('#display').value
+    
     let preFormula = formula
     let length = formula.length
+
     if (loc == length)
         cursorPresent = false
 
@@ -112,19 +114,6 @@ function read(event) {
         let lastFormula = formula
         let reverseIndex = lastFormula.length - endloc
         let savedLoc = endloc
-        function resetRemain() {
-            cursorPresent = false
-            if (lastFormula == "")
-                reset()
-            else {
-                document.querySelector('#display').value = lastFormula
-                loc = savedLoc
-                endloc = savedLoc
-                input.setSelectionRange(loc, loc)
-            }
-            preCalc(document.querySelector('#display').value)
-            resize()
-        }
         
         let potentialFormula = "0" 
         if (loc != endloc) {
@@ -155,8 +144,20 @@ function read(event) {
                 continue
             }
             let run = read(potentialFormula[i])
-            if (run == 1) {
-                resetRemain()
+            if (run == 1 && potentialFormula[i] == "0" && trigger == "⌫") 
+                continue
+            else if (run == 1) {
+                cursorPresent = false
+                if (lastFormula == "")
+                    reset()
+                else {
+                    document.querySelector('#display').value = lastFormula
+                    loc = savedLoc
+                    endloc = savedLoc
+                    input.setSelectionRange(loc, loc)
+                }
+                preCalc(document.querySelector('#display').value)
+                resize()
                 return 1
             }
         }
@@ -291,7 +292,7 @@ function read(event) {
         if (formula != "0" && typeId(formula[length - 1]) != 0 && formula[length - 1] != "e") {
             if (formula[length - 1] == ".")
                 formula = formula.slice(0, (length - 1)) + trigger
-            else if (length != 0 && typeId(lastTrigger) != 0 && formula[length - 1] != "%" && formula[length - 1] != "(")
+            else if (length != 0 && typeId(formula[length - 1]) != 0 && formula[length - 1] != "%" && formula[length - 1] != "(")
                 formula = formula + "%"
         }
     }
@@ -367,7 +368,7 @@ function read(event) {
             formula = formula + "x" + trigger
         else if (formula == "0" || formula == "ERROR")
             formula = trigger
-        else if (typeId(lastTrigger) == 0 && trigger == "0")
+        else if (typeId(formula[length - 1]) == 0 && trigger == "0")
             formula = formula + trigger
         else {
             let naturalNumOrDecimal = false
@@ -434,14 +435,12 @@ function read(event) {
     else
         preCalc(formula)
 
-    lastTrigger = trigger
     document.getElementById('display').scrollTop = display.scrollHeight
     return errorCode
 }
 
 // Resets global variables
 function reset() {
-    lastTrigger = ""
     modifiedOutput = undefined
     formula = "0"
     lastOperation = ""
