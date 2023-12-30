@@ -16,12 +16,10 @@ function read(event) {
     else
         trigger = event.srcElement.innerHTML
 
-    if (trigger == "," || trigger == "\n")
+    if (trigger == "," || trigger == "\n" || trigger == " ")
         return 0
 
-    if (trigger == "-")
-        trigger = "‑"
-    else if (trigger == "( )")
+    if (trigger == "( )")
         trigger = "p"
     else if (trigger == "+/-")
         trigger = "z"
@@ -106,7 +104,7 @@ function read(event) {
                 lastHistOperation = document.getElementById("listContainer").children[historyIndex].children[0].innerHTML
             if (lastHistOperation != preFormula) {
                 appendHistory(preFormula)
-                appendHistory("=" + postFormula)
+                appendHistory("= " + postFormula)
             }
         }
     }
@@ -135,7 +133,7 @@ function read(event) {
         reset()
         
         for (let i = 0; i < potentialFormulaLen; i++) {
-            if (potentialFormula[i] == "e" && (potentialFormula[i + 1] == "+" || potentialFormula[i + 1] == "-" || potentialFormula[i + 1] == "‑")) {
+            if (potentialFormula[i] == "e" && (potentialFormula[i + 1] == "+" || potentialFormula[i + 1] == "-")) {
                 setScreen(document.querySelector('#display').value + potentialFormula[i] + potentialFormula[i + 1])
                 i++
                 continue
@@ -166,7 +164,7 @@ function read(event) {
         return 0
     }
     else if (trigger == "⌫") {
-        if (formula == "ERROR" || formula == "Infinity" || formula == "‑Infinity") {
+        if (formula == "ERROR" || formula == "Infinity" || formula == "-Infinity") {
             reset()
             return 0
         }
@@ -179,7 +177,7 @@ function read(event) {
             }
         }
     }
-    else if (formula == "ERROR" || formula == "Infinity" || formula == "‑Infinity") 
+    else if (formula == "ERROR" || formula == "Infinity" || formula == "-Infinity") 
         return 1
     else if (trigger == "z") {
         if (formula[length - 1] == "e") 
@@ -189,51 +187,51 @@ function read(event) {
                 return 1
         }
         if (formula == "0")
-            formula = "(‑"
-        else if (formula == "(‑")
+            formula = "(-"
+        else if (formula == "(-")
             formula = "0"
         else {
             for (let i = length - 1; i >= 0; i--) {
                 if (typeId(formula[i]) == 1 && i > 0) {
                     if (formula[i] == "%") 
-                        formula = formula + "x(‑"
+                        formula = formula + "x(-"
                     else
                         continue
                 }
                 else if (typeId(formula[i]) == 1)
-                    formula = "(‑" + formula
+                    formula = "(-" + formula
                 else if (i == (length - 1)){
                     if (formula[i] == ")") 
-                        formula = formula + "x(‑"
-                    else if (formula[i] == "‑" && i > 0) {
+                        formula = formula + "x(-"
+                    else if (formula[i] == "-" && i > 0) {
                         if (formula[i - 1] == "(")
                             formula = formula.slice(0, (i - 1))
                         else
-                            formula = formula + "(‑"
+                            formula = formula + "(-"
                     }
                     else
-                        formula = formula + "(‑"
+                        formula = formula + "(-"
                 }
-                else if (formula[i] == "‑" && i > 0) {
+                else if (formula[i] == "-" && i > 0) {
                     if (formula[i - 1] == "e")
                             continue
                     else if (formula[i - 1] == "\n") {
                         if (formula[i - 2] == "(")
                             formula = formula.slice(0, (i - 2)) + formula.slice(i + 1)
                         else 
-                            formula = formula.slice(0, (i + 1)) + "(‑" + formula.slice(i + 1)
+                            formula = formula.slice(0, (i + 1)) + "(-" + formula.slice(i + 1)
                     }
                     else if (formula[i - 1] == "(")
                         formula = formula.slice(0, (i - 1)) + formula.slice(i + 1)
                     else
-                        formula = formula.slice(0, (i + 1)) + "(‑" + formula.slice(i + 1)
+                        formula = formula.slice(0, (i + 1)) + "(-" + formula.slice(i + 1)
                 }
                 else {
                     if (i - 1 >= 0) {
                         if (formula[i - 1] == "e")
                             continue
                     }
-                    formula = formula.slice(0, (i + 1)) + "(‑" + formula.slice(i + 1)
+                    formula = formula.slice(0, (i + 1)) + "(-" + formula.slice(i + 1)
                 } 
                 break
             }
@@ -331,17 +329,17 @@ function read(event) {
             formula = formula + "."
     }
     else if (typeId(trigger) == 0) {
-        if (formula != "0" && formula != "‑" && formula[length - 1] != "e") {
-            if (formula[length - 1] == "(" && trigger == "‑") 
+        if (formula != "0" && formula != "-" && formula[length - 1] != "e") {
+            if (formula[length - 1] == "(" && trigger == "-") 
                 formula = formula + trigger
             else if (typeId(formula[length - 1]) == 0) {
-                if ((trigger == "+" || trigger == "‑") && formula[length - 2] == "(") {
-                    if (trigger == "+" && formula[length - 1] == "‑")
+                if ((trigger == "+" || trigger == "-") && formula[length - 2] == "(") {
+                    if (trigger == "+" && formula[length - 1] == "-")
                         formula = formula.slice(0, (length - 1))
                     else
                         formula = formula.slice(0, (length - 1)) + trigger
                 }
-                else if (trigger == "+" || trigger == "‑")
+                else if (trigger == "+" || trigger == "-")
                     formula = formula.slice(0, (length - 1)) + trigger
                 else if ((trigger == "÷" || trigger == "x") && formula[length - 2] != "(" && formula[length - 2] != "e")
                     formula = formula.slice(0, (length - 1)) + trigger
@@ -353,8 +351,8 @@ function read(event) {
                     formula = formula + trigger
             } 
         }
-        else if (formula == "0" && trigger == "‑")
-            formula = "‑"
+        else if (formula == "0" && trigger == "-")
+            formula = "-"
     }
     else if (typeId(trigger) == 1){
         if (formula[length - 1] == "e") 
@@ -548,8 +546,8 @@ function preCalc (formula) {
 
 // Adds calculations to history container
 function appendHistory (string) {
+    let text
     let list = document.createElement("li")
-    let text = document.createTextNode(string)
     let button = document.createElement("button")
     let container = document.getElementById('listContainer')
 
@@ -557,6 +555,17 @@ function appendHistory (string) {
     button.setAttribute("onclick", "buttonClick(event);calcHistory(event)")
     button.setAttribute("type", "button")
 
+    let stringLen = string.length
+    let startOfChunk = 0
+    for (let i = 0; i < stringLen; i++) {
+        if (string[i] == "\n" && i < stringLen - 1) {
+            text = document.createTextNode(string.slice(startOfChunk, i))
+            startOfChunk = i + 1
+            button.appendChild(text)
+            button.appendChild(document.createElement("br"))
+        } 
+    }
+    text = document.createTextNode(string.slice(startOfChunk))
     button.appendChild(text)
     list.appendChild(button)
     container.appendChild(list)
@@ -634,9 +643,9 @@ function parse (formula) {
                                 if (formula[j - 1] == "e")
                                     continue
                             }
-                            if (formula[j] == "+" || formula[j] == "‑") {
+                            if (formula[j] == "+" || formula[j] == "-") {
                                 percentageOperatorIndex = j
-                                if (formula[j] == "‑" && j > 0){
+                                if (formula[j] == "-" && j > 0){
                                     if (formula[j - 1] == "(")
                                         percentageOperatorIndex = -1
                                 }
@@ -701,7 +710,7 @@ function parse (formula) {
             else if (formula[i] == "," || formula[i] == "\n") 
                 continue
             else if (formula[i] == "e") {
-                if (formula[i + 1] == "‑")
+                if (formula[i + 1] == "-")
                     parsedFormula[parsedFormulaIndex] = parsedFormula[parsedFormulaIndex] + "e-" + formula[i + 2]
                 else
                     parsedFormula[parsedFormulaIndex] = parsedFormula[parsedFormulaIndex] + "e" + formula[i + 1] + formula[i + 2]
@@ -720,8 +729,8 @@ function parse (formula) {
                 parsedFormula[parsedFormulaIndex] = "*"
             else if (formula[i] == "+" && i < (length - 1)) 
                 parsedFormula[parsedFormulaIndex] = "+"
-            else if (formula[i] == "‑" && i < (length - 1)) 
-                parsedFormula[parsedFormulaIndex] = "‑"
+            else if (formula[i] == "-" && i < (length - 1)) 
+                parsedFormula[parsedFormulaIndex] = "-"
             else if (formula[i] == "÷" && i < (length - 1))
                 parsedFormula[parsedFormulaIndex] = "/"
             else if (formula[i] == "(" && i < (length - 1)) 
@@ -821,7 +830,7 @@ function calculate (formula) {
         }
         else if (formula[i] == "+") 
             sum = true
-        else if (formula[i] == "‑" || formula[i] == "-") 
+        else if (formula[i] == "-") 
             sub = true
     }
     return precision(calculation.toString())
@@ -890,7 +899,7 @@ function precision(num) {
             
             if (newVal.length > 11) {
                 newVal = ""
-                if (tempNum[0] == "‑" || tempNum[0] == "-")
+                if (tempNum[0] == "-")
                     tempNum = Number(tempNum) - 1
                 else
                     tempNum = Number(tempNum) + 1
@@ -948,7 +957,7 @@ function precision(num) {
     }
     if (digitCount > 15 && eIndex == -1) {
         let negSign = false
-        if (num[0] == "-" || num[0] == "‑") {
+        if (num[0] == "-") {
             negSign = true
             num = num.slice(1)
         }
@@ -975,7 +984,7 @@ function typeId (value) {
         if (value == "(" || value == ")") 
             return 2
     }
-    let operators = ["x", "+", "‑", "÷", "/", "-", "*"]
+    let operators = ["x", "+", "÷", "/", "-", "*"]
     let operatorsLen = operators.length
     for (let i = 0; i < operatorsLen; i++) {
         if (value == operators[i])
@@ -984,15 +993,9 @@ function typeId (value) {
     return -1
 }
 
-// Adds commas for every 3 integer digits, adds/removes line breaks, fixes hyphens (for aesthetics)
+// Adds commas for every 3 integer digits, adds/removes line breaks
 function fancy (formula) {
     length = formula.length
-
-    // adds special (non-mathematical) hyphen for aesthetic purposes
-    for (let i = 0; i < length; i++) {
-        if (formula[i] == "-")
-            formula = formula.slice(0, i) + "‑" + formula.slice(i + 1)
-    }
 
     // adds line breaks
     length = formula.length
@@ -1075,7 +1078,7 @@ function fancy (formula) {
     let nonFancyLen = nonFancy.length
     
 
-    if (nonFancyLen > 0 && nonFancy != "0" && formula != "ERROR" && formula != "Infinity" && formula != "‑Infinity") {
+    if (nonFancyLen > 0 && nonFancy != "0" && formula != "ERROR" && formula != "Infinity" && formula != "-Infinity") {
         let fancy = ""
         for (let i = nonFancyLen - 4; i >= 0; i = i - 3) {
             if (i == nonFancyLen - 4) 

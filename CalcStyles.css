@@ -151,6 +151,7 @@ li {
 }
 #listContainer {
     position: absolute;
+    white-space: nowrap;
     left: 0px;
     width: 340px;
     height: 356px;
