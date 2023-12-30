@@ -60,6 +60,12 @@ function read(event) {
                 operationPresent = true
             }
         }
+        for (let i = 0; i < length; i++) {
+            if (typeId(formula[i]) == -1) {
+                setScreen("ERROR")
+                return 1
+            }
+        }
         if (operationPresent) {
             modifiedOutput = false
             lastOperation = formula
@@ -91,6 +97,7 @@ function read(event) {
         }
         let preFormula = formula
         if (operationPresent || formula[length - 1] == "%") {
+            formula = fancy(formula)
             formula = calculate(parse(formula))
             formula = fancy(formula)
         }
@@ -962,11 +969,11 @@ function precision(num) {
     return num
 }
 
-// Returns 0 if value is a mathematical operator, 1 if it's a number/numeric syntax, 2 if it's paranthesis,  and -1 if it's neither.
+// Returns 0 if value is a mathematical operator, 1 if it's a number/numeric syntax, 2 if it's paranthesis, 3 if it's misc syntax, and -1 if it's neither.
 function typeId (value) {
     if (value != undefined) {
         if (value == "\n")
-            return -1
+            return 3
         if (!isNaN(Number(value)) || value == "%" || value == "." || value == "," || value == "e")
             return 1
         if (value == "(" || value == ")") 
