@@ -978,42 +978,53 @@ function precision(num) {
             num = tempNum.slice(0, (tempNum.length - 1)) + eQuantity
     }
 
-
     let digitCount = 0
+    let fifteenIndex = -1
+    let sixteenIndex = -1
+    length = num.length
     for (let i = 0; i < length; i++) {
-        if (!isNaN(Number(num[i])))
+        if (!isNaN(Number(num[i]))) {
             digitCount++
-    }
-    if (decIndex != -1 && digitCount > 15 && eIndex == -1) {
-        let i = length - 1
-        while (digitCount > 15) {
-            if (!isNaN(Number(num[i]))) {
-                if (Number(num[i]) > 4 && num[i - 1] == ".") {
-                    let roundedVal = Number(num[i - 2]) + 1
-                    roundedVal = roundedVal.toString()
-                    num = num.slice(0, length - 3) + roundedVal
-                    length -= 2
-                    digitCount -= 2
-                    break
-                }
-                else if (Number(num[i]) > 4 && num[i - 1] != ".") {
-                    let roundedVal = Number(num[i - 1]) + 1
-                    roundedVal = roundedVal.toString()
-                    num = num.slice(0, length - 2) + roundedVal
-                    length --
-                    digitCount--
-                }
-                else {
-                    num = num.slice(0, (length - 1))
-                    length --
-                    digitCount--
-                }
-            }
-            else if (num[i] == ".")
-                break
-            i--
+            if (digitCount == 15) 
+                fifteenIndex = i
+            else if (digitCount == 16)
+                sixteenIndex = i
         }
     }
+
+    if (decIndex != -1 && digitCount > 15 && eIndex == -1) {
+        let roundingVal = 0
+        if (num[0] == "-")
+            roundingVal = -1
+        else 
+            roundingVal = 1
+        
+        if (decIndex < fifteenIndex) {
+            if (Number(num[sixteenIndex]) <= 4) 
+                roundingVal = 0
+            let decVal = num.slice(decIndex + 1 , fifteenIndex + 1)
+            let roundedVal = Number(num.slice(decIndex + 1 , fifteenIndex + 1)) + roundingVal
+            roundedVal = roundedVal.toString()
+            if (decVal.length < roundedVal.length)
+                num = Number(num.slice(0, decIndex)) + roundingVal
+            else 
+                num =  num.slice(0, decIndex + 1) + roundedVal
+            digitCount = 15
+        }
+        else {
+            if (decIndex != length - 1) {
+                if (Number(num[decIndex + 1]) > 4)
+                    num = Number(num.slice(0, decIndex)) + roundingVal
+                else
+                    num = num.slice(0, decIndex)
+            }
+            else
+                num = num.slice(0, decIndex)
+            digitCount = decIndex
+        }
+        num = num.toString()  
+    }
+
     if (digitCount > 15 && eIndex == -1) {
         let negSign = false
         if (num[0] == "-") {
@@ -1055,6 +1066,56 @@ function typeId (value) {
 // Adds commas for every 3 integer digits, adds/removes line breaks
 function fancy (formula) {
     let length = formula.length
+    if (formula == "ERROR" || formula == "Infinity" || formula == "-Infinity")
+        return formula
+
+    // adds commas
+    length = formula.length
+    let nonFancy = ""
+    let fancyFormula = ""
+    for (let i = 0; i < length; i++) {
+        if (!isNaN(Number(formula[i])) && formula[i] != "\n")
+            nonFancy = nonFancy + formula[i]
+        if (typeId(formula[i]) == 0 || formula[i] == "%" || formula[i] == ")" || formula[i] == "\n" || i == length - 1 || formula[i] == ".") {
+            let nonFancyLen = nonFancy.length
+            let fancy = ""
+            for (let i = nonFancyLen - 4; i >= 0; i = i - 3) {
+                if (i == nonFancyLen - 4) 
+                    fancy = "," + nonFancy.slice(i + 1) + fancy
+                else
+                    fancy = "," + nonFancy.slice(i + 1, i + 4) + fancy
+            }
+                
+            if (nonFancyLen % 3 == 2) 
+                fancy = nonFancy.slice(0, 2) + fancy
+            if (nonFancyLen % 3 == 1)
+                fancy = nonFancy[0] + fancy
+            if (nonFancyLen % 3 == 0)
+                fancy = nonFancy.slice(0, 3) + fancy
+
+            let end = ""
+            let j = i
+            let savedIndex = -1
+            if (formula[j] == ".") {
+                while (j < length && typeId(formula[j]) != 0 && formula[j] != "%" && formula[j] != ")" && formula[j] != "\n") {
+                    end = end + formula[j]
+                    savedIndex = j
+                    j++
+                }
+            }
+            while (j < length && (isNaN(Number(formula[j])) || formula[j] == "\n")) {
+                end = end + formula[j]
+                savedIndex = j
+                j++
+            }
+            if (savedIndex != -1)
+                i = savedIndex 
+
+            fancyFormula = fancyFormula + fancy + end
+            nonFancy = ""
+        }
+    }
+    formula = fancyFormula
 
     // adds line breaks
     length = formula.length
@@ -1114,49 +1175,6 @@ function fancy (formula) {
             }
         }
     }
-    
-    length = formula.length
-    let nonFancy = ""
-    let newNumStartIndex = -1
-    let decIndex = -1
-    for (let i = 0; i < length; i++) {
-        if (formula[i] != "\n" && formula[i] != "," && decIndex == -1)
-            nonFancy = nonFancy + formula[i]
-        if (formula[i] == ".") {
-            nonFancy = nonFancy.slice(0, (nonFancy.length - 1))
-            decIndex = i
-        }
-        if (typeId(formula[i]) == 0 || formula[i] == ")" || formula[i] == "%" || formula[i] == "(") {
-            nonFancy = ""
-            newNumStartIndex = i
-            decIndex = -1
-        } 
-    }
-    let nonFancyLen = nonFancy.length
-    
 
-    if (nonFancyLen > 0 && nonFancy != "0" && formula != "ERROR" && formula != "Infinity" && formula != "-Infinity") {
-        let fancy = ""
-        for (let i = nonFancyLen - 4; i >= 0; i = i - 3) {
-            if (i == nonFancyLen - 4) 
-                fancy = "," + nonFancy.slice(i + 1) + fancy
-            else
-                fancy = "," + nonFancy.slice(i + 1, i + 4) + fancy
-        }
-            
-        if (nonFancyLen % 3 == 2) 
-            fancy = nonFancy.slice(0, 2) + fancy
-        if (nonFancyLen % 3 == 1)
-            fancy = nonFancy[0] + fancy
-        if (nonFancyLen % 3 == 0)
-            fancy = nonFancy.slice(0, 3) + fancy
-
-        if (newNumStartIndex == -1 && decIndex == -1) 
-            formula = fancy
-        else if (decIndex != -1) 
-            formula = formula.slice(0, (newNumStartIndex + 1)) + fancy + formula.slice(decIndex)
-        else
-            formula = formula.slice(0, (newNumStartIndex + 1)) + fancy
-    }
     return formula
 }
