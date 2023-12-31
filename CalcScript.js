@@ -7,37 +7,11 @@ let cursorPresent = false
 let input = document.getElementById("display")
 input.setSelectionRange(1, 1)
 
-// Allows keyboard input to act as numpad button click
-let control = false
-document.addEventListener("keyup", function(event) {
-    let trigger = event.key
-    if (trigger == "Control" || trigger == "Command") {
-        setTimeout(() => {
-            control = false
-        }, 150)
-        return
-    }
-    else if (trigger == "(" || trigger == ")")
-        trigger = "( )"
-    else if (trigger == "*")
-        trigger = "x"
-    else if ((trigger == "c" || trigger == "C") && control == false)
-        trigger = "C"
-    else if (trigger == "Enter")
-        trigger = "="
-    else if (trigger == "Backspace")
-        trigger = "backspace"
-    else if (typeId(trigger) == -1)
-        return
-    document.getElementById(trigger).click()
-})
-
-// Enables arrow key usage
+// Allows keyboard input to act as numpad button click.
+// Enables arrow key usage.
 document.addEventListener("keydown", function(event) {
     let trigger = event.key
-    if (trigger == "Control" || trigger == "Command")
-        control = true
-    else if (trigger == "ArrowLeft" || trigger== "ArrowRight"){
+    if (trigger == "ArrowLeft" || trigger== "ArrowRight"){
         let length = document.querySelector('#display').value.length
         if (trigger == "ArrowLeft" && loc > 0)
             loc--
@@ -49,6 +23,19 @@ document.addEventListener("keydown", function(event) {
         endloc = loc
         input.setSelectionRange(loc, loc)
     }
+    else if (trigger == "(" || trigger == ")")
+        trigger = "( )"
+    else if (trigger == "*")
+        trigger = "x"
+    else if ((trigger == "c" || trigger == "C"))
+        trigger = "C"
+    else if (trigger == "Enter")
+        trigger = "="
+    else if (trigger == "Backspace")
+        trigger = "backspace"
+    else if (typeId(trigger) == -1)
+        return
+    document.getElementById(trigger).click()
 })
 
 // trigger function that designates the formula set-up based on button input.
