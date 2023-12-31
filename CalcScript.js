@@ -1097,7 +1097,7 @@ function fancy (formula) {
     for (let i = 0; i < length; i++) {
         if (!isNaN(Number(formula[i])) && formula[i] != "\n")
             nonFancy = nonFancy + formula[i]
-        if (typeId(formula[i]) == 0 || formula[i] == "%" || formula[i] == ")" || formula[i] == "\n" || i == length - 1 || formula[i] == ".") {
+        if (typeId(formula[i]) == 0 || formula[i] == "%" || typeId(formula[i]) == 2 || formula[i] == "\n" || i == length - 1 || formula[i] == ".") {
             let nonFancyLen = nonFancy.length
             let fancy = ""
             for (let i = nonFancyLen - 4; i >= 0; i = i - 3) {
