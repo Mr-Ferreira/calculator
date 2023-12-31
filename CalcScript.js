@@ -993,28 +993,49 @@ function precision(num) {
     }
 
     if (decIndex != -1 && digitCount > 15 && eIndex == -1) {
-        let roundingVal = 0
-        if (num[0] == "-")
-            roundingVal = -1
-        else 
-            roundingVal = 1
-        
         if (decIndex < fifteenIndex) {
-            if (Number(num[sixteenIndex]) <= 4) 
-                roundingVal = 0
-            let decVal = num.slice(decIndex + 1 , fifteenIndex + 1)
-            let roundedVal = Number(num.slice(decIndex + 1 , fifteenIndex + 1)) + roundingVal
-            roundedVal = roundedVal.toString()
-            if (decVal.length < roundedVal.length)
-                num = Number(num.slice(0, decIndex)) + roundingVal
-            else 
-                num =  num.slice(0, decIndex + 1) + roundedVal
+            if (Number(num[sixteenIndex]) > 4) {
+                let newVal = num.slice(nonZeroIndex, fifteenIndex + 1)
+                let preRoundLen = 0
+                let postRoundLen = 0
+                let intNum = num.slice(0, (decIndex + 1))
+                
+                preRoundLen = newVal.length
+                newVal = Number(newVal) + 1
+                newVal = newVal.toString()
+                postRoundLen = newVal.length
+        
+                
+                if (newVal.length > (fifteenIndex - decIndex)) {
+                    newVal = ""
+                    if (intNum[0] == "-")
+                        intNum = Number(intNum) - 1
+                    else
+                        intNum = Number(intNum) + 1
+                    intNum = intNum.toString()
+                }
+                else if (postRoundLen > preRoundLen) {
+                    for (let i = 0; i < (decDigitCount - nonZeroDecDigitCount - 1); i++)
+                        intNum = intNum + "0"
+                }
+                else {
+                    for (let i = 0; i < (decDigitCount - nonZeroDecDigitCount); i++)
+                        intNum = intNum + "0"
+                }
+                num = intNum + newVal
+            }
+            else
+                num = num.slice(0, fifteenIndex + 1)
             digitCount = 15
         }
         else {
             if (decIndex != length - 1) {
-                if (Number(num[decIndex + 1]) > 4)
-                    num = Number(num.slice(0, decIndex)) + roundingVal
+                if (Number(num[decIndex + 1]) > 4) {
+                    if (num[0] == "-")
+                        num = Number(num.slice(0, decIndex)) - 1
+                    else 
+                        num = Number(num.slice(0, decIndex)) + 1
+                }
                 else
                     num = num.slice(0, decIndex)
             }
