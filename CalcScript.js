@@ -33,7 +33,7 @@ document.addEventListener("keydown", function(event) {
         trigger = "="
     else if (trigger == "Backspace")
         trigger = "backspace"
-    else if (typeId(trigger) == -1)
+    else if (typeId(trigger) == -1 || trigger == "e")
         return
     document.getElementById(trigger).click()
 })
