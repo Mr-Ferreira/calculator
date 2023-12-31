@@ -22,6 +22,7 @@ document.addEventListener("keydown", function(event) {
             cursorPresent = true
         endloc = loc
         input.setSelectionRange(loc, loc)
+        return
     }
     else if (trigger == "(" || trigger == ")")
         trigger = "( )"
@@ -29,7 +30,7 @@ document.addEventListener("keydown", function(event) {
         trigger = "x"
     else if ((trigger == "c" || trigger == "C"))
         trigger = "C"
-    else if (trigger == "Enter")
+    else if (trigger == "Enter" || trigger == "=")
         trigger = "="
     else if (trigger == "Backspace")
         trigger = "backspace"
