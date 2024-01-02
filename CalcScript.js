@@ -144,7 +144,31 @@ function read(event) {
         let lastFormula = formula
         let reverseIndex = lastFormula.length - endloc
         let savedLoc = endloc
-        
+
+        if ((trigger == "⌫" || loc != endloc) && lastFormula[endloc - 1] == ".") {
+            let numCount = 0
+            for (let i = endloc; i < length; i++) {
+                if (!isNaN(Number(formula[i])) && formula[i] != "\n") 
+                    numCount++
+                else
+                    break
+                if (numCount == 3){
+                    numCount = 0
+                    reverseIndex++
+                }
+            }
+        }
+        else if (trigger == ".") {
+            for (let i = endloc; i < length; i++) {
+                if (!isNaN(Number(formula[i])) && formula[i] != "\n") 
+                    continue
+                else if (formula[i] == ",")
+                    reverseIndex--
+                else
+                    break
+            }
+        }
+
         let potentialFormula = "0" 
         if (loc != endloc) {
             if (trigger == "⌫")
@@ -195,6 +219,7 @@ function read(event) {
         }
         let displayLen = document.querySelector('#display').value.length
         endloc = displayLen - reverseIndex
+
         if (endloc > displayLen)
             endloc = displayLen
         else if (endloc < 0)
@@ -325,14 +350,8 @@ function read(event) {
                 formula = formula + "("
         }
     }
-    else if (trigger == "%") {
-        if (formula != "0" && typeId(formula[length - 1]) != 0 && formula[length - 1] != "e") {
-            if (formula[length - 1] == ".")
-                formula = formula.slice(0, (length - 1)) + trigger
-            else if (length != 0 && typeId(formula[length - 1]) != 0 && formula[length - 1] != "%" && formula[length - 1] != "(")
-                formula = formula + "%"
-        }
-    }
+    else if (trigger == "%" && formula != "0" && typeId(formula[length - 1]) != 0 && formula[length - 1] != "e" && formula[length - 1] != "%" && formula[length - 1] != "(") 
+        formula = formula + "%"
     else if (trigger == ".") {
         if (modifiedOutput == true)
             reset()
@@ -1085,7 +1104,7 @@ function fancy (formula) {
     for (let i = 0; i < length; i++) {
         if (!isNaN(Number(formula[i])) && formula[i] != "\n")
             nonFancy = nonFancy + formula[i]
-        if (typeId(formula[i]) == 0 || formula[i] == "%" || typeId(formula[i]) == 2 || formula[i] == "\n" || i == length - 1 || formula[i] == ".") {
+        if (typeId(formula[i]) == 0 || formula[i] == "%" || typeId(formula[i]) == 2 || formula[i] == "\n" || i == length - 1 || formula[i] == "." || formula[i] == "e") {
             let nonFancyLen = nonFancy.length
             let fancy = ""
             for (let i = nonFancyLen - 4; i >= 0; i = i - 3) {
@@ -1106,7 +1125,7 @@ function fancy (formula) {
             let j = i
             let savedIndex = -1
             if (formula[j] == ".") {
-                while (j < length && typeId(formula[j]) != 0 && formula[j] != "%" && formula[j] != ")" && formula[j] != "\n") {
+                while (j < length && typeId(formula[j]) != 0 && formula[j] != "%" && typeId(formula[j]) != 2 && formula[j] != "\n" && formula[j] != "e") {
                     end = end + formula[j]
                     savedIndex = j
                     j++
