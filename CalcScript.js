@@ -13,15 +13,16 @@ document.addEventListener("keydown", function(event) {
     let trigger = event.key
     if (trigger == "ArrowLeft" || trigger== "ArrowRight"){
         let length = document.querySelector('#display').value.length
-        if (trigger == "ArrowLeft" && loc > 0)
-            loc--
-        else if (trigger == "ArrowRight" && loc < length)
-            loc++
+        if (trigger == "ArrowLeft" && endloc > 0)
+            endloc--
+        else if (trigger == "ArrowRight" && endloc < length)
+            endloc++
 
-        if (loc != length)
+        if (endloc != length)
             cursorPresent = true
-        endloc = loc
-        input.setSelectionRange(loc, loc)
+        
+        loc = endloc
+        input.setSelectionRange(endloc, endloc)
         return
     }
     else if (trigger == "(" || trigger == ")")
