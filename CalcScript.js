@@ -9,35 +9,57 @@ input.setSelectionRange(1, 1)
 
 // Allows keyboard input to act as numpad button click.
 // Enables arrow key usage.
+let control = false
 document.addEventListener("keydown", function(event) {
     let trigger = event.key
-    if (trigger == "ArrowLeft" || trigger== "ArrowRight"){
-        let length = document.querySelector('#display').value.length
-        if (trigger == "ArrowLeft" && endloc > 0)
-            endloc--
-        else if (trigger == "ArrowRight" && endloc < length)
-            endloc++
-
-        if (endloc != length)
-            cursorPresent = true
-        
-        loc = endloc
-        input.setSelectionRange(endloc, endloc)
-        return
+    let display = document.querySelector('#display').value
+    let length = display.length
+    if (control == false) {
+        if (trigger == "ArrowLeft" || trigger== "ArrowRight"){
+            if (trigger == "ArrowLeft" && endloc > 0)
+                endloc--
+            else if (trigger == "ArrowRight" && endloc < length)
+                endloc++
+    
+            if (endloc != length)
+                cursorPresent = true
+            
+            loc = endloc
+            input.setSelectionRange(endloc, endloc)
+            return
+        }
+        else if (trigger == "Control" || trigger == "Command") {
+            control = true
+            input.blur()
+            return
+        } 
+        else if (trigger == "(" || trigger == ")")
+            trigger = "( )"
+        else if (trigger == "*")
+            trigger = "x"
+        else if ((trigger == "c" || trigger == "C"))
+            trigger = "C"
+        else if (trigger == "Enter" || trigger == "=")
+            trigger = "="
+        else if (trigger == "Backspace")
+            trigger = "backspace"
+        else if (typeId(trigger) == -1 || trigger == "e")
+            return
+        document.getElementById(trigger).click()
     }
-    else if (trigger == "(" || trigger == ")")
-        trigger = "( )"
-    else if (trigger == "*")
-        trigger = "x"
-    else if ((trigger == "c" || trigger == "C"))
-        trigger = "C"
-    else if (trigger == "Enter" || trigger == "=")
-        trigger = "="
-    else if (trigger == "Backspace")
-        trigger = "backspace"
-    else if (typeId(trigger) == -1 || trigger == "e")
-        return
-    document.getElementById(trigger).click()
+    else if (trigger == "c" && loc!=endloc) 
+        navigator.clipboard.writeText(display.slice(loc, endloc))
+})
+document.addEventListener("keyup", function(event) {
+    let trigger = event.key
+    if (trigger == "Control" || trigger == "Command") 
+        control = false
+    if (control == false)
+        input.focus()
+})
+document.addEventListener("click", function(event) {
+    control = false
+    input.focus()
 })
 
 // trigger function that designates the formula set-up based on button input.
