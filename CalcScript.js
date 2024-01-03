@@ -63,9 +63,12 @@ document.addEventListener("click", function() {
     input.focus()
 })
 document.addEventListener("paste", function(event) {
-    let clipboard = event.clipboardData.getData("text/plain")
-    read(clipboard)
+    read(event.clipboardData.getData("text/plain"))
 })
+document.addEventListener("cut", function() {
+    navigator.clipboard.writeText(document.querySelector('#display').value.slice(loc, endloc))
+})
+
 
 // trigger function that designates the formula set-up based on button input.
 function read(event) {
