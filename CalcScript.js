@@ -9,6 +9,7 @@ input.setSelectionRange(1, 1)
 
 // Allows keyboard input to act as numpad button click.
 // Enables arrow key usage.
+// Deals with allowing Ctrl keybinds such as Ctrl+C and Ctrl+V
 let control = false
 document.addEventListener("keydown", function(event) {
     let trigger = event.key
@@ -57,9 +58,13 @@ document.addEventListener("keyup", function(event) {
     if (control == false)
         input.focus()
 })
-document.addEventListener("click", function(event) {
+document.addEventListener("click", function() {
     control = false
     input.focus()
+})
+document.addEventListener("paste", function(event) {
+    let clipboard = event.clipboardData.getData("text/plain")
+    read(clipboard)
 })
 
 // trigger function that designates the formula set-up based on button input.
@@ -116,6 +121,7 @@ function read(event) {
                 operationPresent = true
             }
         }
+        
         if (operationPresent) {
             modifiedOutput = false
             lastOperation = formula
