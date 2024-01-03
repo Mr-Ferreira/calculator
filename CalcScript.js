@@ -153,10 +153,10 @@ function read(event) {
                     numCount++
                 else
                     break
-                if (numCount == 3){
-                    numCount = 0
-                    reverseIndex++
-                }
+            }
+            while (numCount > 3) {
+                numCount -= 3
+                reverseIndex++
             }
         }
         else if (trigger == ".") {
