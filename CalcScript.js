@@ -48,7 +48,7 @@ document.addEventListener("keydown", function(event) {
             return
         document.getElementById(trigger).click()
     }
-    else if (trigger == "c" && loc!=endloc) 
+    else if ((trigger == "c" || trigger == "x") && loc!=endloc) 
         navigator.clipboard.writeText(display.slice(loc, endloc))
 })
 document.addEventListener("keyup", function(event) {
