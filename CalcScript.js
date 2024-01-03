@@ -69,7 +69,6 @@ document.addEventListener("cut", function() {
     navigator.clipboard.writeText(document.querySelector('#display').value.slice(loc, endloc))
 })
 
-
 // trigger function that designates the formula set-up based on button input.
 function read(event) {
     let trigger = ""
@@ -680,10 +679,30 @@ function appendHistory (string) {
 // Animates buttons when clicked
 let modifiedColorVal = false
 function buttonClick(event) {
+    let backgroundColor
     let color
     if (modifiedColorVal == false) {
         modifiedColorVal = true
-        color = window.getComputedStyle(event.srcElement , null).getPropertyValue("background-color")
+
+        backgroundColor = window.getComputedStyle(event.srcElement , null).getPropertyValue("background-color")
+        let backgroundColorLen = backgroundColor.length
+        let backgroundColorVal = [""]
+        let backgroundColorValIndex = 0
+        for (let i = 4; i < backgroundColorLen; i++) {
+            if (!isNaN(Number(backgroundColor[i]))) 
+                backgroundColorVal[backgroundColorValIndex] = backgroundColorVal[backgroundColorValIndex] + backgroundColor[i]
+            else if (backgroundColor[i] == ",") {
+                backgroundColorValIndex++
+                backgroundColorVal.push("")
+            }
+        }
+        for (let i = 0; i < 3; i++)  {
+            backgroundColorVal[i] = backgroundColorVal[i] - 100
+            if (backgroundColorVal[i] < 0)
+                backgroundColorVal[i] = 0
+        }
+
+        color = window.getComputedStyle(event.srcElement , null).getPropertyValue("color")
         let colorLen = color.length
         let colorVal = [""]
         let colorValIndex = 0
@@ -701,10 +720,12 @@ function buttonClick(event) {
                 colorVal[i] = 0
         }
         
-        event.srcElement.style.backgroundColor = "rgb(" + colorVal[0] + "," + colorVal[1] + "," + colorVal[2] + ")"
+        event.srcElement.style.color = "rgb(" + colorVal[0] + "," + colorVal[1] + "," + colorVal[2] + ")"
+        event.srcElement.style.backgroundColor = "rgb(" + backgroundColorVal[0] + "," + backgroundColorVal[1] + "," + backgroundColorVal[2] + ")"
         event.srcElement.style.borderStyle = "inset"
         setTimeout(() => {
-            event.srcElement.style.backgroundColor = color
+            event.srcElement.style.backgroundColor = backgroundColor
+            event.srcElement.style.color = color
             event.srcElement.style.borderStyle = "outset"
             modifiedColorVal = false
         }, 150)
