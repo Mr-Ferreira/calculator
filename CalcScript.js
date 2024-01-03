@@ -146,7 +146,19 @@ function read(event) {
         let reverseIndex = lastFormula.length - endloc
         let savedLoc = endloc
 
-        if ((trigger == "⌫" || loc != endloc) && lastFormula[endloc - 1] == ".") {
+        let withinDecimal = false
+        if (typeId(trigger) == 0) {
+            for (let i = loc - 1; i >= 0; i--) {
+                if (!isNaN(Number(formula[i])) && formula[i] != "\n") 
+                    continue
+                else if (formula[i] == ".") {
+                    withinDecimal = true
+                    break
+                }  
+            }
+        }
+        
+        if (((trigger == "⌫" || loc != endloc) && lastFormula[endloc - 1] == ".") || withinDecimal == true) {
             let numCount = 0
             for (let i = endloc; i < length; i++) {
                 if (!isNaN(Number(formula[i])) && formula[i] != "\n") 
@@ -351,8 +363,10 @@ function read(event) {
                 formula = formula + "("
         }
     }
-    else if (trigger == "%" && formula != "0" && typeId(formula[length - 1]) != 0 && formula[length - 1] != "e" && formula[length - 1] != "%" && formula[length - 1] != "(") 
-        formula = formula + "%"
+    else if (trigger == "%") {
+        if (formula != "0" && typeId(formula[length - 1]) != 0 && formula[length - 1] != "e" && formula[length - 1] != "%" && formula[length - 1] != "(")
+            formula = formula + "%"
+    }
     else if (trigger == ".") {
         if (modifiedOutput == true)
             reset()
