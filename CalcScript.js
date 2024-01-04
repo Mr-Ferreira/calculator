@@ -173,22 +173,12 @@ function read(event) {
     }
     else if ((loc != length && loc != undefined) || pastedTrigger) {
         let lastFormula = formula
-        let reverseIndex = lastFormula.length - endloc
+        let lastFormulaLen = lastFormula.length
+        let reverseIndex = lastFormulaLen - endloc
         let savedLoc = endloc
 
-        let withinDecimal = false
-        if (typeId(trigger) == 0) {
-            for (let i = loc - 1; i >= 0; i--) {
-                if (!isNaN(Number(formula[i])) && formula[i] != "\n") 
-                    continue
-                else if (formula[i] == ".") {
-                    withinDecimal = true
-                    break
-                }  
-            }
-        }
-        
-        if (((trigger == "⌫" || loc != endloc) && lastFormula[endloc - 1] == ".") || withinDecimal == true) {
+
+        function addingCommas() {
             let numCount = 0
             for (let i = endloc; i < length; i++) {
                 if (!isNaN(Number(formula[i])) && formula[i] != "\n") 
@@ -201,7 +191,7 @@ function read(event) {
                 reverseIndex++
             }
         }
-        else if (trigger == ".") {
+        function removingCommas() {
             for (let i = endloc; i < length; i++) {
                 if (!isNaN(Number(formula[i])) && formula[i] != "\n") 
                     continue
@@ -211,6 +201,109 @@ function read(event) {
                     break
             }
         }
+        let withinDecimal = false
+        for (let i = loc - 1; i >= 0; i--) {
+            if (!isNaN(Number(formula[i])) || formula[i] == "\n") 
+                continue
+            else if (formula[i] == ".") {
+                withinDecimal = true
+                break
+            }
+            else
+                break
+        }
+        // Looks through selection range and checks for whether there is an operator or a decimal towards the end of the range.
+        let operatorLast = false
+        let decimalLast = false
+        for (let i = loc; i < endloc; i++) {
+            if (typeId(formula[i]) == 0) {
+                operatorLast = true
+                decimalLast = false
+            }
+            else if (formula[i] == ".") {
+                operatorLast = false
+                decimalLast = true
+            }
+        }
+        let numToRight = false
+        if (endloc < length) {
+            if (!isNaN(Number(formula[endloc + 1])) && formula[endloc + 1] != "\n")
+                numToRight = true
+            if (formula[endloc + 1] == "," || formula[endloc + 1] == "\n") {
+                if (!isNaN(Number(formula[endloc + 2])) && formula[endloc + 2] != "\n")
+                    numToRight = true
+            }  
+        }
+        let deletingOperator = false
+        let deletingDec = false
+        if (loc > 0 && trigger == "⌫" && loc == endloc) {
+            if (typeId(formula[loc - 1]) == 0) {
+                deletingOperator = true
+                deletingDec = false
+            }
+            else if (formula[loc - 1] == ".") {
+                deletingOperator = false
+                deletingDec = true
+            }
+        }
+        let operatorTrigger = false
+        let decimalTrigger = false
+        if (typeId(trigger) == 0 || trigger == "%" || trigger == "p")
+            operatorTrigger = true
+        else if (trigger == ".")
+            decimalTrigger = true
+        else if (pastedTrigger) {
+            let triggerLen = trigger.length
+            for (let i = 0; i < triggerLen; i++) {
+                if (typeId(trigger[i]) == 0) {
+                    operatorTrigger = true
+                    decimalTrigger = false
+                }
+                else if (trigger[i] == ".") {
+                    operatorTrigger = false
+                    decimalTrigger = true
+                }
+            }
+        }
+        // Counts linebreaks present in lastFormula, later used to adjust caret location
+        let originalLinebreakCount = 0
+        for (let i = endloc; i < lastFormulaLen; i++) {
+            if (lastFormula[i] == "\n")
+                originalLinebreakCount++
+        }
+        if (numToRight) {
+            if (decimalTrigger)
+                removingCommas()
+            else if (withinDecimal && operatorTrigger) 
+                addingCommas()
+            else if (withinDecimal && operatorLast) 
+                removingCommas()
+            else if (withinDecimal && decimalLast) {
+                // Do nothing
+            }
+            else if (decimalLast)
+                addingCommas()
+            else if (operatorLast) {
+                // Do nothing
+            }
+            else if (deletingDec)
+                addingCommas()
+            else if (deletingOperator) {
+                for (let i = loc - 2; i >= 0; i--) {
+                    if (!isNaN(Number(formula[i])) || formula[i] == "\n") 
+                        continue
+                    else if (formula[i] == ".") {
+                        removingCommas()
+                        break
+                    }
+                    else
+                        break
+                }
+            }
+            else if (operatorTrigger && formula[endloc] == ",") 
+                reverseIndex--
+        }
+        
 
         let potentialFormula = "0" 
         if (loc != endloc) {
@@ -260,8 +353,17 @@ function read(event) {
                 return 1
             }
         }
-        let displayLen = document.querySelector('#display').value.length
+        let display = document.querySelector('#display').value
+        let displayLen = display.length
+        
         endloc = displayLen - reverseIndex
+        let resultLinebreakCount = 0
+        for (let i = endloc; i < displayLen; i++) {
+            if (display[i] == "\n")
+                resultLinebreakCount++
+        }
+        if (resultLinebreakCount < originalLinebreakCount)
+            endloc++
 
         if (endloc > displayLen)
             endloc = displayLen
