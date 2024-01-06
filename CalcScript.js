@@ -5,7 +5,7 @@ let loc = 1
 let endloc = 1
 let cursorPresent = false
 let input = document.getElementById("display")
-input.setSelectionRange(1, 1)
+input.setSelectionRange(loc, endloc)
 
 // Allows keyboard input to act as numpad button click.
 // Enables arrow key usage.
@@ -26,7 +26,7 @@ document.addEventListener("keydown", function(event) {
                 cursorPresent = true
             
             loc = endloc
-            input.setSelectionRange(endloc, endloc)
+            input.setSelectionRange(loc, endloc)
             return
         }
         else if (trigger == "Control" || trigger == "Command") {
@@ -70,6 +70,7 @@ document.addEventListener("cut", function() {
 })
 
 // trigger function that designates the formula set-up based on button input.
+let recursionRun = false
 function read(event) {
     let trigger = ""
     let pastedTrigger = false
@@ -78,22 +79,50 @@ function read(event) {
     else
         trigger = event.srcElement.innerHTML
 
+    let triggerLen = trigger.length
     if (trigger == "," || trigger == "\n" || trigger == " ")
         return 0
-
     if (trigger == "( )")
         trigger = "p"
     else if (trigger == "+/-")
         trigger = "z"
-    else if (trigger.length > 1)
+    else if (triggerLen > 1) {
         pastedTrigger = true
+        let nonfancyTrigger = ""
+        for (let i = 0; i < triggerLen; i++) {
+            if (trigger[i] == "," || trigger[i] == "\n" || trigger[i] == " ")
+                continue
+            else
+                nonfancyTrigger = nonfancyTrigger + trigger[i]
+        }
+        trigger = nonfancyTrigger
+    }
     
     formula = document.querySelector('#display').value
-
-    let preFormula = formula
     let length = formula.length
+    let originalEndloc = endloc
+    let originalLoc = loc
 
-    if (loc == length)
+    // Removes 'fancy' syntax such as commas && linebreaks from the formula while adjusting endloc and loc respectively
+    let nonFancyEndloc = endloc
+    let nonFancyLoc = loc
+    let nonFancy = ""
+    for (let i = 0; i < length; i++) {
+        if (formula[i] == "," || formula[i] == "\n" || formula[i] == " " || formula[i] == "<" || formula[i] == "b" || formula[i] == "r" || formula[i] == ">") {
+            if ((formula[i] == "," || formula[i] == "\n" || formula[i] == " " || formula[i] == "<") && i < originalEndloc)
+                nonFancyEndloc--
+            if ((formula[i] == "," || formula[i] == "\n" || formula[i] == " " || formula[i] == "<") && i < originalLoc) 
+                nonFancyLoc--
+            continue
+        }
+        else
+            nonFancy = nonFancy + formula[i]
+    }
+    formula = nonFancy
+    length = formula.length
+    let preFormula = formula
+
+    if (nonFancyLoc == length)
         cursorPresent = false
 
     if (trigger != "=" && modifiedOutput == false)
@@ -156,7 +185,7 @@ function read(event) {
         let preFormula
         let postFormula
         if (operationPresent || formula[length - 1] == "%") {
-            formula = fancy(calculate(parse(formula)))
+            formula = calculate(parse(formula))
             preFormula = completedFormula
             postFormula = formula
         }
@@ -171,208 +200,60 @@ function read(event) {
             }
         }
     }
-    else if ((loc != length && loc != undefined) || pastedTrigger) {
+    else if (nonFancyLoc != length || pastedTrigger) {
         let lastFormula = formula
-        let lastFormulaLen = lastFormula.length
-        let reverseIndex = lastFormulaLen - endloc
+        let reverseIndex = lastFormula.length - nonFancyEndloc
         let savedLoc = endloc
 
-
-        function addingCommas() {
-            let numCount = 0
-            for (let i = endloc; i < length; i++) {
-                if (!isNaN(Number(formula[i])) && formula[i] != "\n") 
-                    numCount++
-                else
-                    break
-            }
-            while (numCount > 3) {
-                numCount -= 3
-                reverseIndex++
-            }
-        }
-        function removingCommas() {
-            for (let i = endloc; i < length; i++) {
-                if (!isNaN(Number(formula[i])) && formula[i] != "\n") 
-                    continue
-                else if (formula[i] == ",")
-                    reverseIndex--
-                else
-                    break
-            }
-        }
-        let withinDecimal = false
-        for (let i = loc - 1; i >= 0; i--) {
-            if (!isNaN(Number(formula[i])) || formula[i] == "\n") 
-                continue
-            else if (formula[i] == ".") {
-                withinDecimal = true
-                break
-            }
-            else
-                break
-        }
-        // Looks through selection range and checks for whether there is an operator or a decimal towards the end of the range.
-        let operatorLast = false
-        let decimalLast = false
-        for (let i = loc; i < endloc; i++) {
-            if (typeId(formula[i]) == 0) {
-                operatorLast = true
-                decimalLast = false
-            }
-            else if (formula[i] == ".") {
-                operatorLast = false
-                decimalLast = true
-            }
-        }
-        let numToRight = false
-        if (endloc < length) {
-            if (!isNaN(Number(formula[endloc + 1])) && formula[endloc + 1] != "\n")
-                numToRight = true
-            if (formula[endloc + 1] == "," || formula[endloc + 1] == "\n") {
-                if (!isNaN(Number(formula[endloc + 2])) && formula[endloc + 2] != "\n")
-                    numToRight = true
-            }  
-        }
-        let deletingOperator = false
-        let deletingDec = false
-        if (loc > 0 && trigger == "⌫" && loc == endloc) {
-            if (typeId(formula[loc - 1]) == 0) {
-                deletingOperator = true
-                deletingDec = false
-            }
-            else if (formula[loc - 1] == ".") {
-                deletingOperator = false
-                deletingDec = true
-            }
-        }
-        let operatorTrigger = false
-        let decimalTrigger = false
-        if (typeId(trigger) == 0 || trigger == "%" || trigger == "p")
-            operatorTrigger = true
-        else if (trigger == ".")
-            decimalTrigger = true
-        else if (pastedTrigger) {
-            let triggerLen = trigger.length
-            for (let i = 0; i < triggerLen; i++) {
-                if (typeId(trigger[i]) == 0) {
-                    operatorTrigger = true
-                    decimalTrigger = false
-                }
-                else if (trigger[i] == ".") {
-                    operatorTrigger = false
-                    decimalTrigger = true
-                }
-            }
-        }
-        // Counts linebreaks present in lastFormula, later used to adjust caret location
-        let originalLinebreakCount = 0
-        for (let i = endloc; i < lastFormulaLen; i++) {
-            if (lastFormula[i] == "\n")
-                originalLinebreakCount++
-        }
-        if (numToRight) {
-            if (decimalTrigger)
-                removingCommas()
-            else if (withinDecimal && operatorTrigger) 
-                addingCommas()
-            else if (withinDecimal && operatorLast) 
-                removingCommas()
-            else if (withinDecimal && decimalLast) {
-                // Do nothing
-            }
-            else if (decimalLast)
-                addingCommas()
-            else if (operatorLast) {
-                // Do nothing
-            }
-            else if (deletingDec)
-                addingCommas()
-            else if (deletingOperator) {
-                for (let i = loc - 2; i >= 0; i--) {
-                    if (!isNaN(Number(formula[i])) || formula[i] == "\n") 
-                        continue
-                    else if (formula[i] == ".") {
-                        removingCommas()
-                        break
-                    }
-                    else
-                        break
-                }
-            }
-            else if (operatorTrigger && formula[endloc] == ",") 
-                reverseIndex--
-        }
-        
-
         let potentialFormula = "0" 
-        if (loc != endloc) {
+        if (nonFancyLoc != nonFancyEndloc) {
             if (trigger == "⌫")
                 trigger = ""
 
-            if (loc == 0) 
-                potentialFormula = trigger + lastFormula.slice(endloc)
+            if (nonFancyLoc == 0) 
+                potentialFormula = trigger + lastFormula.slice(nonFancyEndloc)
             else 
-                potentialFormula = lastFormula.slice(0, loc) + trigger + lastFormula.slice(endloc)
+                potentialFormula = lastFormula.slice(0, nonFancyLoc) + trigger + lastFormula.slice(nonFancyEndloc)
         }
         else {
-            if (loc == 0) 
+            if (nonFancyLoc == 0) 
                 potentialFormula = trigger + lastFormula.slice(0)
             else
-                potentialFormula = lastFormula.slice(0, loc) + trigger + lastFormula.slice(loc)
+                potentialFormula = lastFormula.slice(0, nonFancyLoc) + trigger + lastFormula.slice(nonFancyLoc)
         }
         let potentialFormulaLen = potentialFormula.length
         reset()
-        
+  
         for (let i = 0; i < potentialFormulaLen; i++) {
+            recursionRun = true
+            let run
             if (potentialFormula[i] == "e" && (potentialFormula[i + 1] == "+" || potentialFormula[i + 1] == "-")) {
-                setScreen(document.querySelector('#display').value + potentialFormula[i] + potentialFormula[i + 1])
+                run = read(potentialFormula[i] + potentialFormula[i + 1])
                 i++
-                continue
             }
-            if (potentialFormula[i] == "<") {
-                potentialFormula = potentialFormula.slice(0, i) + "\n" + potentialFormula.slice(i + 4)
-                potentialFormulaLen -= 3
-            }
-            
-            let run = read(potentialFormula[i])
+            else
+                run = read(potentialFormula[i])
+
             if (run == 1 && potentialFormula[i] == "0" && trigger == "⌫") 
                 continue
             else if (run == 1) {
-                cursorPresent = false
-                if (lastFormula == "")
-                    reset()
-                else {
-                    document.querySelector('#display').value = lastFormula
-                    loc = savedLoc
-                    endloc = savedLoc
-                    input.setSelectionRange(loc, loc)
-                }
+                recursionRun = false
+                document.querySelector('#display').value = fancy(lastFormula)
+                loc = savedLoc
+                endloc = savedLoc
+                input.setSelectionRange(loc, endloc)
                 preCalc(document.querySelector('#display').value)
                 resize()
                 return 1
             }
         }
+        recursionRun = false
+        cursorPresent = true
         let display = document.querySelector('#display').value
-        let displayLen = display.length
-        
-        endloc = displayLen - reverseIndex
-        let resultLinebreakCount = 0
-        for (let i = endloc; i < displayLen; i++) {
-            if (display[i] == "\n")
-                resultLinebreakCount++
-        }
-        if (resultLinebreakCount < originalLinebreakCount)
-            endloc++
-
-        if (endloc > displayLen)
-            endloc = displayLen
-        else if (endloc < 0)
-            endloc = 0
+        endloc = display.length - reverseIndex
         loc = endloc
-        input.setSelectionRange(loc, loc)
-        resize()
-        preCalc(document.querySelector('#display').value)
+        setScreen(display)
+        preCalc(display)
         return 0
     }
     else if (trigger == "⌫") {
@@ -382,7 +263,7 @@ function read(event) {
         }
         else {
             formula = formula.slice(0, (length - 1))
-            formula = fancy(formula)
+            formula = formula
             if (formula == "") {
                 reset()
                 return 0
@@ -427,12 +308,6 @@ function read(event) {
                 else if (formula[i] == "-" && i > 0) {
                     if (formula[i - 1] == "e")
                             continue
-                    else if (formula[i - 1] == "\n") {
-                        if (formula[i - 2] == "(")
-                            formula = formula.slice(0, (i - 2)) + formula.slice(i + 1)
-                        else 
-                            formula = formula.slice(0, (i + 1)) + "(-" + formula.slice(i + 1)
-                    }
                     else if (formula[i - 1] == "(")
                         formula = formula.slice(0, (i - 1)) + formula.slice(i + 1)
                     else
@@ -505,7 +380,7 @@ function read(event) {
         if (typeId(formula[length - 1]) == 1 && formula[length - 1] != "%") {
             let digitCount = 0
             for (let i = length - 1; i >= 0; i--) {
-                if (typeId(formula[i]) == 1 && formula[i] != "," && formula[i] != ".")
+                if (typeId(formula[i]) == 1 && formula[i] != ".")
                     digitCount++
 
                 if (formula[i] == ".")
@@ -612,7 +487,7 @@ function read(event) {
                         decDigitCount = digitCount
                         continue
                     }
-                    if (typeId(formula[i]) == 1 && formula[i] != "," && formula[i] != ".")
+                    if (typeId(formula[i]) == 1 && formula[i] != ".")
                         digitCount++
                     if (decDigitCount >= 10 || digitCount >= 15 || eDigitCount >= 3)
                         return 1
@@ -627,10 +502,16 @@ function read(event) {
         }
     }
     
-    formula = fancy(formula)
-    setScreen(formula)
-    length = formula.length
     let postFormula = formula
+    length = formula.length
+    if (recursionRun) {
+        document.querySelector('#display').value = formula
+        loc = length
+        endloc = length
+        input.setSelectionRange(loc, endloc)
+    }
+    else
+        setScreen(formula)
 
     let errorCode = 0
     if (preFormula == postFormula && trigger != "⌫" && trigger != "C" && trigger != "0")
@@ -654,19 +535,33 @@ function reset() {
     lastOperation = ""
     display.style.fontSize = "30px"
     cursorPresent = false
-    setScreen("0")
+    setScreen(formula)
     document.querySelector('#answerDisplay').value = "= "
 }
 
-// Changes what is on the display
+// Changes what is on the display and adjusts the cursor based on the adjusted display
 function setScreen(string) {
-    document.querySelector('#display').value = string
-    strLen = string.length
-    if (!cursorPresent) {
-        loc = strLen
-        endloc = strLen
+    let fancyString = fancy(string)
+    document.querySelector('#display').value = fancyString
+    if (cursorPresent == false) {
+        loc = fancyString.length
+        endloc = loc
     }
-    input.setSelectionRange(loc, loc)
+    else {
+        let fancyIndex = 0
+        let strIndex = 0
+        while (strIndex < endloc) {
+            if (string[strIndex] == fancyString[fancyIndex]) {
+                strIndex++
+                fancyIndex++
+            }
+            else 
+                fancyIndex++
+        }
+        endloc = fancyIndex
+        loc = fancyIndex
+    }
+    input.setSelectionRange(loc, endloc)
     resize()
 }
 
@@ -741,13 +636,19 @@ function preCalc (formula) {
         }
     }
     if (operationPresent) {
-        formula = fancy(calculate(parse(formula)))
+        let nonFancy = ""
+        for (let i = 0; i < length; i++) {
+            if (formula[i] != "," && formula[i] != "\n" && formula[i] != " " && formula[i] != "<" && formula[i] != "b" && formula[i] != "r" && formula[i] != ">") 
+                nonFancy = nonFancy + formula[i]  
+        }
+        formula = nonFancy
+        formula = calculate(parse(formula))
         if (formula == "ERROR")
             formula = ""
     }
     else
         formula = ""
-    document.querySelector('#answerDisplay').value = "= " + formula
+    document.querySelector('#answerDisplay').value = "= " + fancy(formula)
 }
 
 // Adds calculations to history container
@@ -893,7 +794,7 @@ function parse (formula) {
                             closedCount--
                         else if (formula[j] == ")")
                             closedCount++
-                        if (formula[j] != "\n" && percentageOperatorIndex != -1 && percentageOperatorIndex > j)
+                        if (percentageOperatorIndex != -1 && percentageOperatorIndex > j)
                             percentageOfFormula = formula[j] + percentageOfFormula
                     }
                 }
@@ -939,8 +840,6 @@ function parse (formula) {
                     parsedFormula[parsedFormulaIndex] = percentageOfFormula
                 }
             }
-            else if (formula[i] == "," || formula[i] == "\n")
-                continue
             else if (formula[i] == "e") {
                 if (formula[i + 1] == "-")
                     parsedFormula[parsedFormulaIndex] = parsedFormula[parsedFormulaIndex] + "e-" + formula[i + 2]
@@ -1266,41 +1165,53 @@ function fancy (formula) {
     if (formula == "ERROR" || formula == "Infinity" || formula == "-Infinity")
         return formula
 
+    function adjust(direction) {
+        if (direction == "left") {
+            loc--
+            endloc--
+        }
+        else if (direction == "right") {
+            loc++
+            endloc++
+        }
+        input.setSelectionRange(loc, endloc)
+    }
+    
     // adds commas
     length = formula.length
-    let nonFancy = ""
+    let intNums = ""
     let fancyFormula = ""
     for (let i = 0; i < length; i++) {
-        if (!isNaN(Number(formula[i])) && formula[i] != "\n")
-            nonFancy = nonFancy + formula[i]
-        if (typeId(formula[i]) == 0 || formula[i] == "%" || typeId(formula[i]) == 2 || formula[i] == "\n" || i == length - 1 || formula[i] == "." || formula[i] == "e") {
-            let nonFancyLen = nonFancy.length
+        if (!isNaN(Number(formula[i])))
+            intNums = intNums + formula[i]
+        if (typeId(formula[i]) == 0 || formula[i] == "%" || typeId(formula[i]) == 2|| i == length - 1 || formula[i] == "." || formula[i] == "e") {
+            let intNumsLen = intNums.length
             let fancy = ""
-            for (let i = nonFancyLen - 4; i >= 0; i = i - 3) {
-                if (i == nonFancyLen - 4) 
-                    fancy = "," + nonFancy.slice(i + 1) + fancy
+            for (let k = intNumsLen - 4; k >= 0; k = k - 3) {
+                if (k == intNumsLen - 4)
+                    fancy = "," + intNums.slice(k + 1) + fancy
                 else
-                    fancy = "," + nonFancy.slice(i + 1, i + 4) + fancy
+                    fancy = "," + intNums.slice(k + 1, k + 4) + fancy
             }
                 
-            if (nonFancyLen % 3 == 2) 
-                fancy = nonFancy.slice(0, 2) + fancy
-            if (nonFancyLen % 3 == 1)
-                fancy = nonFancy[0] + fancy
-            if (nonFancyLen % 3 == 0)
-                fancy = nonFancy.slice(0, 3) + fancy
+            if (intNumsLen % 3 == 2) 
+                fancy = intNums.slice(0, 2) + fancy
+            if (intNumsLen % 3 == 1)
+                fancy = intNums[0] + fancy
+            if (intNumsLen % 3 == 0)
+                fancy = intNums.slice(0, 3) + fancy
 
             let end = ""
             let j = i
             let savedIndex = -1
             if (formula[j] == ".") {
-                while (j < length && typeId(formula[j]) != 0 && formula[j] != "%" && typeId(formula[j]) != 2 && formula[j] != "\n" && formula[j] != "e") {
+                while (j < length && typeId(formula[j]) != 0 && formula[j] != "%" && typeId(formula[j]) != 2 && formula[j] != "e") {
                     end = end + formula[j]
                     savedIndex = j
                     j++
                 }
             }
-            while (j < length && (isNaN(Number(formula[j])) || formula[j] == "\n")) {
+            while (j < length && isNaN(Number(formula[j]))) {
                 end = end + formula[j]
                 savedIndex = j
                 j++
@@ -1309,7 +1220,7 @@ function fancy (formula) {
                 i = savedIndex 
 
             fancyFormula = fancyFormula + fancy + end
-            nonFancy = ""
+            intNums = ""
         }
     }
     formula = fancyFormula
@@ -1363,9 +1274,9 @@ function fancy (formula) {
                     leftChars++
             }
             if (leftChars + rightChars <= 22) {
-                if (i == length - 1) 
+                if (i == length - 1)
                     formula = formula.slice(0, i)
-                else if (i == 0) 
+                else if (i == 0)
                     formula = formula.slice(i + 1)
                 else 
                     formula = formula.slice(0, i) + formula.slice(i + 1)
