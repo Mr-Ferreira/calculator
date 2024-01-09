@@ -195,8 +195,8 @@ function read(event) {
             if (historyIndex >= 0)
                 lastHistOperation = document.getElementById("listContainer").children[historyIndex].children[0].innerHTML
             if (lastHistOperation != preFormula) {
-                appendHistory(preFormula)
-                appendHistory("= " + postFormula)
+                appendHistory(fancy(preFormula))
+                appendHistory("= " + fancy(postFormula))
             }
         }
     }
