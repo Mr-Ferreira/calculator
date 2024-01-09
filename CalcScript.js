@@ -90,7 +90,7 @@ function read(event) {
         pastedTrigger = true
         let nonfancyTrigger = ""
         for (let i = 0; i < triggerLen; i++) {
-            if (trigger[i] == "," || trigger[i] == "\n" || trigger[i] == " ")
+            if (trigger[i] == "," || trigger[i] == "\n" || trigger[i] == " " || trigger[i] == "<" || trigger[i] == "b" || trigger[i] == "r" || trigger[i] == ">")
                 continue
             else
                 nonfancyTrigger = nonfancyTrigger + trigger[i]
