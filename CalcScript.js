@@ -7,6 +7,17 @@ let cursorPresent = false
 let input = document.getElementById("display")
 input.setSelectionRange(loc, endloc)
 
+// Resets global variables
+function reset() {
+    modifiedOutput = undefined
+    formula = "0"
+    lastOperation = ""
+    display.style.fontSize = "30px"
+    cursorPresent = false
+    setScreen(formula)
+    document.querySelector('#answerDisplay').value = "= "
+}
+
 // Allows keyboard input to act as numpad button click.
 // Enables arrow key usage.
 // Deals with allowing Ctrl keybinds such as Ctrl+C and Ctrl+V
@@ -188,6 +199,10 @@ function read(event) {
             formula = calculate(parse(formula))
             preFormula = completedFormula
             postFormula = formula
+            length = formula.length
+            loc = length
+            endloc = loc
+            input.setSelectionRange(loc, endloc)
         }
         if (preFormula != postFormula && formula != "ERROR") {
             let historyIndex = document.getElementById("listContainer").childElementCount - 2
@@ -528,17 +543,6 @@ function read(event) {
     return errorCode
 }
 
-// Resets global variables
-function reset() {
-    modifiedOutput = undefined
-    formula = "0"
-    lastOperation = ""
-    display.style.fontSize = "30px"
-    cursorPresent = false
-    setScreen(formula)
-    document.querySelector('#answerDisplay').value = "= "
-}
-
 // Changes what is on the display and adjusts the cursor based on the adjusted display
 function setScreen(string) {
     let fancyString = fancy(string)
@@ -735,8 +739,9 @@ function buttonClick(event) {
     }
 }
 
-// Parses the formula to be later solved.
+// Global variable that holds the parsed formula with completed paratheses
 let completedFormula = "0"
+// Parses the formula to be later solved.
 function parse (formula) {
     let parsedFormula = [""]
     let parsedFormulaIndex = 0
