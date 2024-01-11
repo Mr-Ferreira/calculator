@@ -113,24 +113,31 @@ function read(event) {
     let length = formula.length
     let originalEndloc = endloc
     let originalLoc = loc
-
-    // Removes 'fancy' syntax such as commas && linebreaks from the formula while adjusting endloc and loc respectively
+    
     let nonFancyEndloc = endloc
     let nonFancyLoc = loc
     let nonFancy = ""
-    for (let i = 0; i < length; i++) {
-        if (formula[i] == "," || formula[i] == "\n" || formula[i] == " " || formula[i] == "<" || formula[i] == "b" || formula[i] == "r" || formula[i] == ">") {
-            if ((formula[i] == "," || formula[i] == "\n" || formula[i] == " " || formula[i] == "<") && i < originalEndloc)
-                nonFancyEndloc--
-            if ((formula[i] == "," || formula[i] == "\n" || formula[i] == " " || formula[i] == "<") && i < originalLoc) 
-                nonFancyLoc--
-            continue
-        }
-        else
-            nonFancy = nonFancy + formula[i]
+    if (recursionRun) {
+        nonFancyEndloc = length
+        nonFancyLoc = length
     }
-    formula = nonFancy
-    length = formula.length
+    else {
+        // Removes 'fancy' syntax such as commas && linebreaks from the formula while adjusting endloc and loc respectively
+        for (let i = 0; i < length; i++) {
+            if (formula[i] == "," || formula[i] == "\n" || formula[i] == " " || formula[i] == "<" || formula[i] == "b" || formula[i] == "r" || formula[i] == ">") {
+                if ((formula[i] == "," || formula[i] == "\n" || formula[i] == " " || formula[i] == "<") && i < originalEndloc)
+                    nonFancyEndloc--
+                if ((formula[i] == "," || formula[i] == "\n" || formula[i] == " " || formula[i] == "<") && i < originalLoc) 
+                    nonFancyLoc--
+                continue
+            }
+            else
+                nonFancy = nonFancy + formula[i]
+        }
+        formula = nonFancy
+        length = formula.length
+    }
+
     let preFormula = formula
 
     if (nonFancyLoc == length)
@@ -238,17 +245,19 @@ function read(event) {
         }
         let potentialFormulaLen = potentialFormula.length
         reset()
-  
+        
         for (let i = 0; i < potentialFormulaLen; i++) {
             recursionRun = true
             let run
-            if (potentialFormula[i] == "e" && (potentialFormula[i + 1] == "+" || potentialFormula[i + 1] == "-")) {
-                run = read(potentialFormula[i] + potentialFormula[i + 1])
-                i++
+            if (i < potentialFormulaLen - 1) {
+                if (potentialFormula[i] == "e" && (potentialFormula[i + 1] == "+" || potentialFormula[i + 1] == "-")) {
+                    document.querySelector('#display').value = document.querySelector('#display').value + potentialFormula[i] + potentialFormula[i + 1]
+                    i++
+                    continue
+                }
             }
-            else
-                run = read(potentialFormula[i])
 
+            run = read(potentialFormula[i])
             if (run == 1 && potentialFormula[i] == "0" && trigger == "⌫") 
                 continue
             else if (run == 1) {
@@ -369,6 +378,8 @@ function read(event) {
             else if (typeId(formula[length - 1]) == 2) {
                 if (formula[length - 1] == ")" && sumLeft > sumRight)
                     formula = formula + ")"
+                else if (formula[length - 1] == ")" && sumLeft == sumRight)
+                    formula = formula + "x("
                 else
                     formula = formula + "("
             }
@@ -534,12 +545,13 @@ function read(event) {
     else
         errorCode = 0
     
-    if (trigger == "=" || trigger == "C" || formula == "0")
-        preCalc("=")
-    else
-        preCalc(formula)
-
-    document.getElementById('display').scrollTop = display.scrollHeight
+    if (recursionRun == false) {
+        if (trigger == "=" || trigger == "C" || formula == "0")
+            preCalc("=")
+        else
+            preCalc(formula)
+        document.getElementById('display').scrollTop = display.scrollHeight
+    }
     return errorCode
 }
 
