@@ -1193,18 +1193,6 @@ function fancy (formula) {
     let length = formula.length
     if (formula == "ERROR" || formula == "Infinity" || formula == "-Infinity")
         return formula
-
-    function adjust(direction) {
-        if (direction == "left") {
-            loc--
-            endloc--
-        }
-        else if (direction == "right") {
-            loc++
-            endloc++
-        }
-        input.setSelectionRange(loc, endloc)
-    }
     
     // adds commas
     length = formula.length
