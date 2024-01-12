@@ -153,6 +153,8 @@ function read(event) {
         reset()
         return 0
     }
+    else if (formula == "ERROR" || formula == "Infinity" || formula == "-Infinity") 
+        return 1
     else if (trigger == "=") {
         length = formula.length
         let operationPresent = false
@@ -297,8 +299,6 @@ function read(event) {
             }
         }
     }
-    else if (formula == "ERROR" || formula == "Infinity" || formula == "-Infinity") 
-        return 1
     else if (trigger == "z") {
         if (formula[length - 1] == "e") 
                 return 1
