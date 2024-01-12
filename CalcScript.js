@@ -212,6 +212,8 @@ function read(event) {
             endloc = loc
             input.setSelectionRange(loc, endloc)
         }
+        else
+            return 1
         if (preFormula != postFormula && formula != "ERROR") {
             let historyIndex = document.getElementById("listContainer").childElementCount - 2
             let lastHistOperation = ""
