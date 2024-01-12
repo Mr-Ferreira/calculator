@@ -11,6 +11,7 @@ button {
     border-width: 5px;
     border-color: rgb(206, 206, 206);
     font-size: 40px;
+    cursor: pointer;
 }
 #siteIcon {
     position: relative;
