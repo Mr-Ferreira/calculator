@@ -47,8 +47,8 @@ document.addEventListener("keydown", function(event) {
         } 
         else if (trigger == "(" || trigger == ")")
             trigger = "( )"
-        else if (trigger == "*")
-            trigger = "x"
+        else if (trigger == "*" || trigger == "x")
+            trigger = "×"
         else if ((trigger == "c" || trigger == "C"))
             trigger = "C"
         else if (trigger == "Enter" || trigger == "=")
@@ -453,7 +453,7 @@ function read(event) {
                 }
                 else if (trigger == "+" || trigger == "-")
                     formula = formula.slice(0, (length - 1)) + trigger
-                else if ((trigger == "÷" || trigger == "x") && formula[length - 2] != "(" && formula[length - 2] != "e")
+                else if ((trigger == "÷" || trigger == "×") && formula[length - 2] != "(" && formula[length - 2] != "e")
                     formula = formula.slice(0, (length - 1)) + trigger
             }
             else {
@@ -472,7 +472,7 @@ function read(event) {
         if (modifiedOutput == true)
             reset()
         if (length > 1 && (formula[length - 1] == "%" || formula[length - 1] == ")")) 
-            formula = formula + "x" + trigger
+            formula = formula + "×" + trigger
         else if (formula == "0" || formula == "ERROR")
             formula = trigger
         else if (typeId(formula[length - 1]) == 0 && trigger == "0")
@@ -830,7 +830,7 @@ function parse (formula) {
                 if (percentageOperatorIndex == "pendingOpen")
                     percentageOperatorIndex = -1
                 if (i < length - 1) {
-                    if (formula[i + 1] == "x" || formula[i + 1] == "÷")
+                    if (formula[i + 1] == "×" || formula[i + 1] == "÷")
                         percentageOfFormula = ""
                 }
                 if (percentageOfFormula != "")
@@ -885,7 +885,7 @@ function parse (formula) {
         } 
         else {
             next()
-            if (formula[i] == "x" && i < (length - 1))
+            if (formula[i] == "×" && i < (length - 1))
                 parsedFormula[parsedFormulaIndex] = "*"
             else if (formula[i] == "+" && i < (length - 1)) 
                 parsedFormula[parsedFormulaIndex] = "+"
@@ -1179,7 +1179,7 @@ function typeId (value) {
         if (value == "(" || value == ")") 
             return 2
     }
-    let operators = ["x", "+", "÷", "/", "-", "*"]
+    let operators = ["×", "+", "÷", "/", "-", "*"]
     let operatorsLen = operators.length
     for (let i = 0; i < operatorsLen; i++) {
         if (value == operators[i])
