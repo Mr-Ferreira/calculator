@@ -314,7 +314,7 @@ function read(event) {
             for (let i = length - 1; i >= 0; i--) {
                 if (typeId(formula[i]) == 1 && i > 0) {
                     if (formula[i] == "%") 
-                        formula = formula + "x(-"
+                        formula = formula + "×(-"
                     else
                         continue
                 }
@@ -322,7 +322,7 @@ function read(event) {
                     formula = "(-" + formula
                 else if (i == (length - 1)){
                     if (formula[i] == ")") 
-                        formula = formula + "x(-"
+                        formula = formula + "×(-"
                     else if (formula[i] == "-" && i > 0) {
                         if (formula[i - 1] == "(")
                             formula = formula.slice(0, (i - 1))
@@ -373,7 +373,7 @@ function read(event) {
             formula = "("
         else if (trigger == "p" || trigger == ")") {
             if (typeId(formula[length - 1]) != 0 && sumLeft == sumRight && trigger != ")")
-                formula = formula + "x("
+                formula = formula + "×("
             else if (typeId(formula[length - 1]) == 0 && sumLeft == sumRight)
                 formula = formula + "("
             else if (typeId(formula[length - 1]) == 1 && sumLeft > sumRight)
@@ -382,7 +382,7 @@ function read(event) {
                 if (formula[length - 1] == ")" && sumLeft > sumRight)
                     formula = formula + ")"
                 else if (formula[length - 1] == ")" && sumLeft == sumRight)
-                    formula = formula + "x("
+                    formula = formula + "×("
                 else
                     formula = formula + "("
             }
@@ -392,7 +392,7 @@ function read(event) {
         }
         else if (trigger == "(") {
             if (typeId(formula[length - 1]) == 1) 
-                formula = formula + "x("
+                formula = formula + "×("
             else if (formula[length - 1] == ")")
                 return 1
             else
@@ -436,7 +436,7 @@ function read(event) {
             formula = formula + "0."
         }
         else if (formula[length - 1] == ")" || formula[length - 1] == "%")
-            formula = formula + "x0."
+            formula = formula + "×0."
         else if (formula[length - 1] != ".")
             formula = formula + "."
     }
