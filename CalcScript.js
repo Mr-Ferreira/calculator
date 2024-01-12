@@ -122,7 +122,8 @@ function read(event) {
         nonFancyLoc = length
     }
     else {
-        // Removes 'fancy' syntax such as commas && linebreaks from the formula while adjusting endloc and loc respectively
+        // Removes 'fancy' syntax such as commas and linebreaks from the formula while adjusting endloc and loc respectively.
+        // We want to remove fancy syntax for all operational uses of the formula, while using the fancy syntax on the user interface.
         for (let i = 0; i < length; i++) {
             if (formula[i] == "," || formula[i] == "\n" || formula[i] == " " || formula[i] == "<" || formula[i] == "b" || formula[i] == "r" || formula[i] == ">") {
                 if ((formula[i] == "," || formula[i] == "\n" || formula[i] == " " || formula[i] == "<") && i < originalEndloc)
@@ -555,7 +556,7 @@ function read(event) {
     return errorCode
 }
 
-// Changes what is on the display and adjusts the cursor based on the adjusted display
+// Changes what is on the display and adjusts the cursor location based on the adjusted display
 function setScreen(string) {
     let fancyString = fancy(string)
     document.querySelector('#display').value = fancyString
@@ -611,9 +612,9 @@ function calcHistory(event) {
         let histList = document.getElementById('listContainer')
         histList.scrollTop = histList.scrollHeight
         document.getElementById('numPad').style.display = "none"
-        document.getElementById("showHistory").innerHTML = "+/-"
+        document.getElementById("showHistory").innerHTML = "123"
     }
-    else if (trigger == "+/-") {
+    else if (trigger == "123") {
         document.getElementById('histContainer').style.display = "none"
         document.getElementById('numPad').style.display = "block"
         document.getElementById("showHistory").innerHTML = "Hist"
@@ -693,15 +694,24 @@ function appendHistory (string) {
     button.appendChild(text)
     list.appendChild(button)
     container.appendChild(list)
+    buttonsRunning[container.lastChild.firstChild.innerHTML] = false
 }
 
 // Animates buttons when clicked
-let modifiedColorVal = false
+let buttonsRunning = new Object()
+window.onload = () => {
+    let buttons = document.getElementsByName("button")
+    let buttonsLen = buttons.length
+    for (let i = 0; i < buttonsLen; i++)
+        buttonsRunning[buttons[i].innerHTML] = false
+    buttonsRunning["123"] = false
+}
 function buttonClick(event) {
+    let trigger = event.srcElement.innerHTML
     let backgroundColor
     let color
-    if (modifiedColorVal == false) {
-        modifiedColorVal = true
+    if (buttonsRunning[trigger] == false) {
+        buttonsRunning[trigger] = true
 
         backgroundColor = window.getComputedStyle(event.srcElement , null).getPropertyValue("background-color")
         let backgroundColorLen = backgroundColor.length
@@ -746,7 +756,7 @@ function buttonClick(event) {
             event.srcElement.style.backgroundColor = backgroundColor
             event.srcElement.style.color = color
             event.srcElement.style.borderStyle = "outset"
-            modifiedColorVal = false
+            buttonsRunning[trigger] = false
         }, 150)
     }
 }
