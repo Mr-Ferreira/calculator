@@ -40,6 +40,61 @@ document.addEventListener("keydown", function(event) {
             input.setSelectionRange(loc, endloc)
             return
         }
+        else if (trigger == "ArrowUp" || trigger== "ArrowDown") {
+            let distanceFromRight = 0
+            for (let i = endloc; i < length; i++) {
+                if (display[i] != "\n")
+                    distanceFromRight++
+                else
+                    break
+            }
+
+            if (trigger == "ArrowUp") {
+                let savedLoc = endloc - 1
+                if (savedLoc > 0) {
+                    for (savedLoc; savedLoc >= 0; savedLoc--) {
+                        if (display[savedLoc] == "\n")
+                            break
+                    }
+                    if (savedLoc >= 0) {
+                        while (distanceFromRight > 0) {
+                            savedLoc = savedLoc - 1
+                            distanceFromRight--
+                        }
+                        if (savedLoc < 0)
+                            savedLoc = 0
+                        endloc = savedLoc
+                    }
+                }
+            }
+            else if (trigger== "ArrowDown") {
+                if (endloc < length - 1) {
+                    for (endloc; endloc < length; endloc++) {
+                        if (display[endloc] == "\n") {
+                            endloc++
+                            for (endloc; endloc < length; endloc++) {
+                                if (display[endloc] == "\n")
+                                    break
+                            }
+                            break
+                        } 
+                    }
+                    while (distanceFromRight > 0) {
+                        endloc = endloc - 1
+                        distanceFromRight--
+                    }
+                    if (endloc < 0)
+                        endloc = 0
+                }
+            }
+            
+            if (endloc != length)
+                cursorPresent = true
+
+            loc = endloc
+            input.setSelectionRange(loc, endloc)
+            return
+        }
         else if (trigger == "Control" || trigger == "Command") {
             control = true
             input.blur()
@@ -59,7 +114,7 @@ document.addEventListener("keydown", function(event) {
             return
         document.getElementById(trigger).click()
     }
-    else if ((trigger == "c" || trigger == "x") && loc!=endloc) 
+    else if (trigger == "c" || trigger == "x") 
         navigator.clipboard.writeText(display.slice(loc, endloc))
 })
 document.addEventListener("keyup", function(event) {
@@ -91,7 +146,7 @@ function read(event) {
         trigger = event.srcElement.innerHTML
 
     let triggerLen = trigger.length
-    if (trigger == "," || trigger == "\n" || trigger == " ")
+    if (trigger == "," || trigger == "\n" || trigger == "\r" || trigger == " ")
         return 0
     if (trigger == "( )")
         trigger = "p"
@@ -101,7 +156,7 @@ function read(event) {
         pastedTrigger = true
         let nonfancyTrigger = ""
         for (let i = 0; i < triggerLen; i++) {
-            if (trigger[i] == "," || trigger[i] == "\n" || trigger[i] == " " || trigger[i] == "<" || trigger[i] == "b" || trigger[i] == "r" || trigger[i] == ">")
+            if (trigger[i] == "," || trigger[i] == "\n" || formula[i] == "\r" || trigger[i] == " " || trigger[i] == "<" || trigger[i] == "b" || trigger[i] == "r" || trigger[i] == ">")
                 continue
             else
                 nonfancyTrigger = nonfancyTrigger + trigger[i]
@@ -125,10 +180,10 @@ function read(event) {
         // Removes 'fancy' syntax such as commas and linebreaks from the formula while adjusting endloc and loc respectively.
         // We want to remove fancy syntax for all operational uses of the formula, while using the fancy syntax on the user interface.
         for (let i = 0; i < length; i++) {
-            if (formula[i] == "," || formula[i] == "\n" || formula[i] == " " || formula[i] == "<" || formula[i] == "b" || formula[i] == "r" || formula[i] == ">") {
-                if ((formula[i] == "," || formula[i] == "\n" || formula[i] == " " || formula[i] == "<") && i < originalEndloc)
+            if (formula[i] == "," || formula[i] == "\n" || formula[i] == "\r" || formula[i] == " " || formula[i] == "<" || formula[i] == "b" || formula[i] == "r" || formula[i] == ">") {
+                if ((formula[i] == "," || formula[i] == "\n" || formula[i] == "\r" || formula[i] == " " || formula[i] == "<") && i < originalEndloc)
                     nonFancyEndloc--
-                if ((formula[i] == "," || formula[i] == "\n" || formula[i] == " " || formula[i] == "<") && i < originalLoc) 
+                if ((formula[i] == "," || formula[i] == "\n" || formula[i] == "\r" || formula[i] == " " || formula[i] == "<") && i < originalLoc) 
                     nonFancyLoc--
                 continue
             }
@@ -1172,7 +1227,7 @@ function precision(num) {
 // Returns 0 if value is a mathematical operator, 1 if it's a number/numeric syntax, 2 if it's paranthesis, 3 if it's misc syntax, and -1 if it's neither.
 function typeId (value) {
     if (value != undefined) {
-        if (value == "\n")
+        if (value == "\n" || value == "\r")
             return 3
         if (!isNaN(Number(value)) || value == "%" || value == "." || value == "," || value == "e")
             return 1
