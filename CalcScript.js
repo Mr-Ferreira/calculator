@@ -4,8 +4,11 @@ let lastOperation = ""
 let loc = 1
 let endloc = 1
 let cursorPresent = false
-let input = document.getElementById("display")
-input.setSelectionRange(loc, endloc)
+let input
+$(document).ready(function () {
+    input = $('#display')[0]
+    input.setSelectionRange(loc, endloc)
+})
 
 // Resets global variables
 function reset() {
@@ -15,124 +18,136 @@ function reset() {
     display.style.fontSize = "30px"
     cursorPresent = false
     setScreen(formula)
-    document.querySelector('#answerDisplay').value = "= "
+    $('#answerDisplay').html("= ") 
 }
 
 // Allows keyboard input to act as numpad button click.
 // Enables arrow key usage.
 // Deals with allowing Ctrl keybinds such as Ctrl+C and Ctrl+V
 let control = false
-document.addEventListener("keydown", function(event) {
-    let trigger = event.key
-    let display = document.querySelector('#display').value
-    let length = display.length
-    if (control == false) {
-        if (trigger == "ArrowLeft" || trigger== "ArrowRight"){
-            if (trigger == "ArrowLeft" && endloc > 0)
-                endloc--
-            else if (trigger == "ArrowRight" && endloc < length)
-                endloc++
-    
-            if (endloc != length)
-                cursorPresent = true
-            
-            loc = endloc
-            input.setSelectionRange(loc, endloc)
-            return
-        }
-        else if (trigger == "ArrowUp" || trigger== "ArrowDown") {
-            let distanceFromRight = 0
-            for (let i = endloc; i < length; i++) {
-                if (display[i] != "\n")
-                    distanceFromRight++
-                else
-                    break
+$(document).ready(function () {
+    $(document).on("keydown", function(event) {
+        let trigger = event.key
+        let display = $('#display').html()
+        let length = display.length
+        if (control == false) {
+            if (trigger == "ArrowLeft" || trigger== "ArrowRight"){
+                if (trigger == "ArrowLeft" && endloc > 0)
+                    endloc--
+                else if (trigger == "ArrowRight" && endloc < length)
+                    endloc++
+        
+                if (endloc != length)
+                    cursorPresent = true
+                
+                loc = endloc
+                input.setSelectionRange(loc, endloc)
+                return
             }
-
-            if (trigger == "ArrowUp") {
-                let savedLoc = endloc - 1
-                if (savedLoc > 0) {
-                    for (savedLoc; savedLoc >= 0; savedLoc--) {
-                        if (display[savedLoc] == "\n")
-                            break
+            else if (trigger == "ArrowUp" || trigger== "ArrowDown") {
+                let distanceFromRight = 0
+                for (let i = endloc; i < length; i++) {
+                    if (display[i] != "\n")
+                        distanceFromRight++
+                    else
+                        break
+                }
+    
+                if (trigger == "ArrowUp") {
+                    let savedLoc = endloc - 1
+                    if (savedLoc > 0) {
+                        for (savedLoc; savedLoc >= 0; savedLoc--) {
+                            if (display[savedLoc] == "\n")
+                                break
+                        }
+                        if (savedLoc >= 0) {
+                            while (distanceFromRight > 0) {
+                                savedLoc = savedLoc - 1
+                                distanceFromRight--
+                            }
+                            if (savedLoc < 0)
+                                savedLoc = 0
+                            endloc = savedLoc
+                        }
                     }
-                    if (savedLoc >= 0) {
+                }
+                else if (trigger== "ArrowDown") {
+                    if (endloc < length - 1) {
+                        for (endloc; endloc < length; endloc++) {
+                            if (display[endloc] == "\n") {
+                                endloc++
+                                for (endloc; endloc < length; endloc++) {
+                                    if (display[endloc] == "\n")
+                                        break
+                                }
+                                break
+                            } 
+                        }
                         while (distanceFromRight > 0) {
-                            savedLoc = savedLoc - 1
+                            endloc = endloc - 1
                             distanceFromRight--
                         }
-                        if (savedLoc < 0)
-                            savedLoc = 0
-                        endloc = savedLoc
+                        if (endloc < 0)
+                            endloc = 0
                     }
                 }
+                
+                if (endloc != length)
+                    cursorPresent = true
+    
+                loc = endloc
+                input.setSelectionRange(loc, endloc)
+                return
             }
-            else if (trigger== "ArrowDown") {
-                if (endloc < length - 1) {
-                    for (endloc; endloc < length; endloc++) {
-                        if (display[endloc] == "\n") {
-                            endloc++
-                            for (endloc; endloc < length; endloc++) {
-                                if (display[endloc] == "\n")
-                                    break
-                            }
-                            break
-                        } 
-                    }
-                    while (distanceFromRight > 0) {
-                        endloc = endloc - 1
-                        distanceFromRight--
-                    }
-                    if (endloc < 0)
-                        endloc = 0
-                }
-            }
-            
-            if (endloc != length)
-                cursorPresent = true
-
-            loc = endloc
-            input.setSelectionRange(loc, endloc)
-            return
+            else if (trigger == "Control" || trigger == "Command") {
+                control = true
+                input.blur()
+                return
+            } 
+            else if (trigger == "(" || trigger == ")")
+                trigger = "parentheses"
+            else if (trigger == "*" || trigger == "x")
+                trigger = "multiply"
+            else if ((trigger == "c" || trigger == "C"))
+                trigger = "C"
+            else if (trigger == "Enter" || trigger == "=")
+                trigger = "equals"
+            else if (trigger == "Backspace")
+                trigger = "backspace"
+            else if (trigger == "+")
+                trigger = "add"
+            else if (trigger == "-")
+                trigger = "subtract"
+            else if (trigger == "/")
+                trigger = "divide"
+            else if (trigger == "%")
+                trigger = "percent"
+            else if (trigger == ".")
+                trigger = "decimal"
+            else if (typeId(trigger) == -1 || trigger == "e")
+                return
+            $("#" + trigger).click()
         }
-        else if (trigger == "Control" || trigger == "Command") {
-            control = true
-            input.blur()
-            return
-        } 
-        else if (trigger == "(" || trigger == ")")
-            trigger = "( )"
-        else if (trigger == "*" || trigger == "x")
-            trigger = "×"
-        else if ((trigger == "c" || trigger == "C"))
-            trigger = "C"
-        else if (trigger == "Enter" || trigger == "=")
-            trigger = "="
-        else if (trigger == "Backspace")
-            trigger = "backspace"
-        else if (typeId(trigger) == -1 || trigger == "e")
-            return
-        document.getElementById(trigger).click()
-    }
-    else if (trigger == "c" || trigger == "x") 
-        navigator.clipboard.writeText(display.slice(loc, endloc))
-})
-document.addEventListener("keyup", function(event) {
-    let trigger = event.key
-    if (trigger == "Control" || trigger == "Command") 
+        else if (trigger == "c" || trigger == "x") 
+            navigator.clipboard.writeText(display.slice(loc, endloc))
+    })
+    $(document).on("keyup", function(event) {
+        let trigger = event.key
+        if (trigger == "Control" || trigger == "Command") 
+            control = false
+        if (control == false)
+            input.focus()
+    })
+    $(document).on("click", function() {
         control = false
-    if (control == false)
         input.focus()
-})
-document.addEventListener("click", function() {
-    control = false
-    input.focus()
-})
-document.addEventListener("paste", function(event) {
-    read(event.clipboardData.getData("text/plain"))
-})
-document.addEventListener("cut", function() {
-    navigator.clipboard.writeText(document.querySelector('#display').value.slice(loc, endloc))
+    })
+    $(document).on("paste", function(event) {
+        read(event.originalEvent.clipboardData.getData("text/plain"))
+    })
+    $(document).on("cut", function() {
+        navigator.clipboard.writeText($('#display').html().slice(loc, endloc))
+    })
 })
 
 // trigger function that designates the formula set-up based on button input.
@@ -140,10 +155,10 @@ let recursionRun = false
 function read(event) {
     let trigger = ""
     let pastedTrigger = false
-    if (event.srcElement == undefined) 
+    if (event.target == undefined) 
         trigger = event
-    else
-        trigger = event.srcElement.innerHTML
+    else 
+        trigger = event.target.innerHTML
 
     let triggerLen = trigger.length
     if (trigger == "," || trigger == "\n" || trigger == "\r" || trigger == " ")
@@ -156,7 +171,8 @@ function read(event) {
         pastedTrigger = true
         let nonfancyTrigger = ""
         for (let i = 0; i < triggerLen; i++) {
-            if (trigger[i] == "," || trigger[i] == "\n" || formula[i] == "\r" || trigger[i] == " " || trigger[i] == "<" || trigger[i] == "b" || trigger[i] == "r" || trigger[i] == ">")
+            if (trigger[i] == "," || trigger[i] == "\n" || formula[i] == "\r" || 
+            trigger[i] == " " || trigger[i] == "<" || trigger[i] == "b" || trigger[i] == "r" || trigger[i] == ">")
                 continue
             else
                 nonfancyTrigger = nonfancyTrigger + trigger[i]
@@ -164,7 +180,7 @@ function read(event) {
         trigger = nonfancyTrigger
     }
     
-    formula = document.querySelector('#display').value
+    formula = $('#display').html()
     let length = formula.length
     let originalEndloc = endloc
     let originalLoc = loc
@@ -180,7 +196,8 @@ function read(event) {
         // Removes 'fancy' syntax such as commas and linebreaks from the formula while adjusting endloc and loc respectively.
         // We want to remove fancy syntax for all operational uses of the formula, while using the fancy syntax on the user interface.
         for (let i = 0; i < length; i++) {
-            if (formula[i] == "," || formula[i] == "\n" || formula[i] == "\r" || formula[i] == " " || formula[i] == "<" || formula[i] == "b" || formula[i] == "r" || formula[i] == ">") {
+            if (formula[i] == "," || formula[i] == "\n" || formula[i] == "\r" || 
+            formula[i] == " " || formula[i] == "<" || formula[i] == "b" || formula[i] == "r" || formula[i] == ">") {
                 if ((formula[i] == "," || formula[i] == "\n" || formula[i] == "\r" || formula[i] == " " || formula[i] == "<") && i < originalEndloc)
                     nonFancyEndloc--
                 if ((formula[i] == "," || formula[i] == "\n" || formula[i] == "\r" || formula[i] == " " || formula[i] == "<") && i < originalLoc) 
@@ -272,10 +289,10 @@ function read(event) {
         else
             return 1
         if (preFormula != postFormula && formula != "ERROR") {
-            let historyIndex = document.getElementById("listContainer").childElementCount - 2
+            let historyIndex = $('#listContainer').children().length - 2
             let lastHistOperation = ""
             if (historyIndex >= 0)
-                lastHistOperation = document.getElementById("listContainer").children[historyIndex].children[0].innerHTML
+                lastHistOperation = $('#listContainer').children().eq(historyIndex).children().first().html()
             if (lastHistOperation != preFormula) {
                 appendHistory(fancy(preFormula))
                 appendHistory("= " + fancy(postFormula))
@@ -311,7 +328,7 @@ function read(event) {
             let run
             if (i < potentialFormulaLen - 1) {
                 if (potentialFormula[i] == "e" && (potentialFormula[i + 1] == "+" || potentialFormula[i + 1] == "-")) {
-                    document.querySelector('#display').value = document.querySelector('#display').value + potentialFormula[i] + potentialFormula[i + 1]
+                    $('#display').html($('#display').html() + potentialFormula[i] + potentialFormula[i + 1])
                     i++
                     continue
                 }
@@ -322,18 +339,18 @@ function read(event) {
                 continue
             else if (run == 1) {
                 recursionRun = false
-                document.querySelector('#display').value = fancy(lastFormula)
+                $('#display').html(fancy(lastFormula)) 
                 loc = savedLoc
                 endloc = savedLoc
                 input.setSelectionRange(loc, endloc)
-                preCalc(document.querySelector('#display').value)
+                preCalc($('#display').html())
                 resize()
                 return 1
             }
         }
         recursionRun = false
         cursorPresent = true
-        let display = document.querySelector('#display').value
+        let display = $('#display').html()
         endloc = display.length - reverseIndex
         loc = endloc
         setScreen(display)
@@ -546,7 +563,7 @@ function read(event) {
             if (trigger == "0" && naturalNumOrDecimal == false && formula[length - 1] == "0")
                 return 1
             else if (naturalNumOrDecimal == false && formula[length - 1] == "0")
-               formula = formula.slice(0, length - 1) + trigger
+                formula = formula.slice(0, length - 1) + trigger
             else {
                 // Counts the digits in the last number in the formula
                 let digitCount = 0
@@ -589,7 +606,7 @@ function read(event) {
     let postFormula = formula
     length = formula.length
     if (recursionRun) {
-        document.querySelector('#display').value = formula
+        $('#display').html(formula)
         loc = length
         endloc = length
         input.setSelectionRange(loc, endloc)
@@ -608,7 +625,7 @@ function read(event) {
             preCalc("=")
         else
             preCalc(formula)
-        document.getElementById('display').scrollTop = display.scrollHeight
+        $('#display')[0].scrollTop = display.scrollHeight
     }
     return errorCode
 }
@@ -616,7 +633,7 @@ function read(event) {
 // Changes what is on the display and adjusts the cursor location based on the adjusted display
 function setScreen(string) {
     let fancyString = fancy(string)
-    document.querySelector('#display').value = fancyString
+    $('#display').html(fancyString)
     if (cursorPresent == false) {
         loc = fancyString.length
         endloc = loc
@@ -642,7 +659,7 @@ function setScreen(string) {
 // Gets cursor location when display is clicked on
 function focused() {
     cursorPresent = true
-    document.addEventListener("mouseup", function(event) {
+    $(document).on("mouseup", function() {
         loc = input.selectionStart
         endloc = input.selectionEnd
     })
@@ -650,7 +667,7 @@ function focused() {
 
 // Resizes the font based on content width
 function resize() {
-    let display = document.getElementById('display')
+    let display = $('#display')[0]
     let fontSize = 30
     display.style.fontSize = "30px"
     while (display.scrollWidth > display.clientWidth) {
@@ -663,24 +680,21 @@ function resize() {
 
 // History container button functionalities
 function calcHistory(event) {
-    let trigger = event.srcElement.innerHTML
+    let trigger = event.target.innerHTML
     if (trigger == "Hist") {
-        document.getElementById('histContainer').style.display = "block"
-        let histList = document.getElementById('listContainer')
+        $('#histContainer')[0].style.display = "block"
+        let histList = $('#listContainer')[0]
         histList.scrollTop = histList.scrollHeight
-        document.getElementById('numPad').style.display = "none"
-        document.getElementById("showHistory").innerHTML = "123"
+        $('#numPad')[0].style.display = "none"
+        $('#showHistory').html("123")
     }
     else if (trigger == "123") {
-        document.getElementById('histContainer').style.display = "none"
-        document.getElementById('numPad').style.display = "block"
-        document.getElementById("showHistory").innerHTML = "Hist"
+        $('#histContainer')[0].style.display = "none"
+        $('#numPad')[0].style.display = "block"
+        $('#showHistory').html("Hist")
     }
-    else if (trigger == "Clear") {
-        let container = document.getElementById('listContainer')
-        while (container.childElementCount > 0) 
-            container.removeChild(container.children[0])
-    }
+    else if (trigger == "Clear") 
+        $('#listContainer').empty()
     else {
         if (trigger[0] == "=")
             trigger = trigger.slice(1)
@@ -705,8 +719,10 @@ function preCalc (formula) {
                     continue
                 operationPresent = true
             }  
-            else if (formula[i] == "%" || formula[i] == "(")
+            else if (formula[i] == "%")
                 operationPresent = true
+            if (operationPresent)
+                break
         }
     }
     if (operationPresent) {
@@ -722,20 +738,15 @@ function preCalc (formula) {
     }
     else
         formula = ""
-    document.querySelector('#answerDisplay').value = "= " + fancy(formula)
+    $('#answerDisplay').html("= " + fancy(formula))
 }
 
 // Adds calculations to history container
 function appendHistory (string) {
     let text
-    let list = document.createElement("li")
-    let button = document.createElement("button")
-    let container = document.getElementById('listContainer')
-
-    button.setAttribute("id", "listedHistory")
-    button.setAttribute("onclick", "buttonClick(event);calcHistory(event)")
-    button.setAttribute("type", "button")
-    button.setAttribute("style", "border-radius: 2%")
+    let list = $("<li></li>")
+    let button = $("<button id='histButton' type='button' onclick='buttonClick(event);calcHistory(event)'></button>")
+    let container = $('#listContainer')
 
     let stringLen = string.length
     let startOfChunk = 0
@@ -743,34 +754,33 @@ function appendHistory (string) {
         if (string[i] == "\n" && i < stringLen - 1) {
             text = document.createTextNode(string.slice(startOfChunk, i))
             startOfChunk = i + 1
-            button.appendChild(text)
-            button.appendChild(document.createElement("br"))
+            button.append(text)
+            button.append($("<br>"))
         } 
     }
     text = document.createTextNode(string.slice(startOfChunk))
-    button.appendChild(text)
-    list.appendChild(button)
-    container.appendChild(list)
-    buttonsRunning[container.lastChild.firstChild.innerHTML] = false
+    button.append(text)
+    list.append(button)
+    container.append(list)
+    buttonsRunning[container.last().first().html()] = false
 }
 
 // Animates buttons when clicked
 let buttonsRunning = new Object()
-window.onload = () => {
-    let buttons = document.getElementsByName("button")
-    let buttonsLen = buttons.length
-    for (let i = 0; i < buttonsLen; i++)
-        buttonsRunning[buttons[i].innerHTML] = false
+$(document).ready(function () {
+    $('[name="button"').each(function () {
+        buttonsRunning[$(this).html()] = false
+    })
     buttonsRunning["123"] = false
-}
+})
 function buttonClick(event) {
-    let trigger = event.srcElement.innerHTML
+    let trigger = event.target.innerHTML
     let backgroundColor
     let color
     if (buttonsRunning[trigger] == false) {
         buttonsRunning[trigger] = true
 
-        backgroundColor = window.getComputedStyle(event.srcElement , null).getPropertyValue("background-color")
+        backgroundColor = window.getComputedStyle(event.target , null).getPropertyValue("background-color")
         let backgroundColorLen = backgroundColor.length
         let backgroundColorVal = [""]
         let backgroundColorValIndex = 0
@@ -788,7 +798,7 @@ function buttonClick(event) {
                 backgroundColorVal[i] = 0
         }
 
-        color = window.getComputedStyle(event.srcElement , null).getPropertyValue("color")
+        color = window.getComputedStyle(event.target , null).getPropertyValue("color")
         let colorLen = color.length
         let colorVal = [""]
         let colorValIndex = 0
@@ -806,13 +816,13 @@ function buttonClick(event) {
                 colorVal[i] = 0
         }
         
-        event.srcElement.style.color = "rgb(" + colorVal[0] + "," + colorVal[1] + "," + colorVal[2] + ")"
-        event.srcElement.style.backgroundColor = "rgb(" + backgroundColorVal[0] + "," + backgroundColorVal[1] + "," + backgroundColorVal[2] + ")"
-        event.srcElement.style.borderStyle = "inset"
+        event.target.style.color = "rgb(" + colorVal[0] + "," + colorVal[1] + "," + colorVal[2] + ")"
+        event.target.style.backgroundColor = "rgb(" + backgroundColorVal[0] + "," + backgroundColorVal[1] + "," + backgroundColorVal[2] + ")"
+        event.target.style.borderStyle = "inset"
         setTimeout(() => {
-            event.srcElement.style.backgroundColor = backgroundColor
-            event.srcElement.style.color = color
-            event.srcElement.style.borderStyle = "outset"
+            event.target.style.backgroundColor = backgroundColor
+            event.target.style.color = color
+            event.target.style.borderStyle = "outset"
             buttonsRunning[trigger] = false
         }, 150)
     }
@@ -1233,12 +1243,12 @@ function typeId (value) {
             return 1
         if (value == "(" || value == ")") 
             return 2
-    }
-    let operators = ["×", "+", "÷", "/", "-", "*"]
-    let operatorsLen = operators.length
-    for (let i = 0; i < operatorsLen; i++) {
-        if (value == operators[i])
-            return 0
+        let operators = ["×", "+", "÷", "/", "-", "*"]
+        let operatorsLen = operators.length
+        for (let i = 0; i < operatorsLen; i++) {
+            if (value == operators[i])
+                return 0
+        }
     }
     return -1
 }
