@@ -10,17 +10,6 @@ $(document).ready(function () {
     input.setSelectionRange(loc, endloc)
 })
 
-// Resets global variables
-function reset() {
-    modifiedOutput = undefined
-    formula = "0"
-    lastOperation = ""
-    display.style.fontSize = "30px"
-    cursorPresent = false
-    setScreen(formula)
-    $('#answerDisplay').html("= ") 
-}
-
 // Allows keyboard input to act as numpad button click.
 // Enables arrow key usage.
 // Deals with allowing Ctrl keybinds such as Ctrl+C and Ctrl+V
@@ -150,9 +139,606 @@ $(document).ready(function () {
     })
 })
 
-// trigger function that designates the formula set-up based on button input.
+// Designates the display set-up based on button input and cursor location.
 let recursionRun = false
 function read(event) {
+    // Changes what is on the display and adjusts the cursor location based on the adjusted display
+    function setScreen(string) {
+        let fancyString = fancy(string)
+        $('#display').html(fancyString)
+        if (cursorPresent == false) {
+            loc = fancyString.length
+            endloc = loc
+        }
+        else {
+            let fancyIndex = 0
+            let strIndex = 0
+            while (strIndex < endloc) {
+                if (string[strIndex] == fancyString[fancyIndex]) {
+                    strIndex++
+                    fancyIndex++
+                }
+                else 
+                    fancyIndex++
+            }
+            endloc = fancyIndex
+            loc = fancyIndex
+        }
+        input.setSelectionRange(loc, endloc)
+        resize()
+    }
+
+    // Resets global variables
+    function reset() {
+        modifiedOutput = undefined
+        formula = "0"
+        lastOperation = ""
+        display.style.fontSize = "30px"
+        cursorPresent = false
+        setScreen(formula)
+        $('#answerDisplay').html("= ") 
+    }
+
+    // Calculates the parsed formula.
+    // Recall - PEMDAS.
+    function calculate (formula) {
+        // Limits size of calculated numbers to 10 digits after the decimal,
+        // this is due to Javascript's floating point number innaccuracy.
+        // Limits size of calculated numbers to 15 digits total.
+        function precision(num) {
+            if (num == "0")
+                return num
+
+            // Counts number of digits after the decimal
+            let dec = false
+            let decDigitCount = 0
+            let nonZeroDecDigitCount = 0
+            let nonZeroIndex = -1
+            let tempNum = ""
+            let decIndex = -1
+            let eIndex = -1
+            let length = num.length
+
+            for (let i = 0; i < length; i++) {
+                if (num[i] == ".") {
+                    dec = true
+                    decIndex = i
+                    continue
+                }
+                if (num[i] == "e") {
+                    eIndex = i
+                    if (dec == false)
+                        return num
+                    dec = false
+                }
+                if (dec) {
+                    decDigitCount++
+                    if (num[i] != "0" && nonZeroIndex == -1) 
+                        nonZeroIndex = i
+                    if (nonZeroIndex != -1 && eIndex == -1)
+                        nonZeroDecDigitCount++
+                }
+                if (decDigitCount == 11 && dec) {
+                    if ((i + 1) > (length - 1)) 
+                        tempNum = num
+                    else
+                        tempNum = num.slice(0, i + 1)
+                }
+            }
+
+            let eQuantity = ""
+            if (eIndex != -1)
+                eQuantity = num.slice(eIndex)
+            
+            if (tempNum != "") {
+                if (Number(tempNum[tempNum.length - 1]) > 4){
+                    let newVal = tempNum.slice(nonZeroIndex)
+                    let preRoundLen = 0
+                    let postRoundLen = 0
+                    tempNum = tempNum.slice(0, (decIndex + 1))
+                    
+                    preRoundLen = newVal.length
+                    newVal = Number(newVal) + 1
+                    newVal = newVal.toString()
+                    postRoundLen = newVal.length
+            
+                    
+                    if (newVal.length > 11) {
+                        newVal = ""
+                        if (tempNum[0] == "-")
+                            tempNum = Number(tempNum) - 1
+                        else
+                            tempNum = Number(tempNum) + 1
+                        tempNum = tempNum.toString()
+                    }
+                    else if (postRoundLen > preRoundLen) {
+                        for (let i = 0; i < (decDigitCount - nonZeroDecDigitCount - 1); i++)
+                            tempNum = tempNum + "0"
+                    }
+                    else {
+                        for (let i = 0; i < (decDigitCount - nonZeroDecDigitCount); i++)
+                            tempNum = tempNum + "0"
+                    }
+                    num = tempNum + newVal + eQuantity
+                }   
+                else 
+                    num = tempNum.slice(0, (tempNum.length - 1)) + eQuantity
+            }
+
+            let digitCount = 0
+            let fifteenIndex = -1
+            let sixteenIndex = -1
+            length = num.length
+            for (let i = 0; i < length; i++) {
+                if (!isNaN(Number(num[i]))) {
+                    digitCount++
+                    if (digitCount == 15) 
+                        fifteenIndex = i
+                    else if (digitCount == 16)
+                        sixteenIndex = i
+                }
+            }
+
+            if (decIndex != -1 && digitCount > 15 && eIndex == -1) {
+                if (decIndex < fifteenIndex) {
+                    if (Number(num[sixteenIndex]) > 4) {
+                        let newVal = num.slice(nonZeroIndex, fifteenIndex + 1)
+                        let preRoundLen = 0
+                        let postRoundLen = 0
+                        let intNum = num.slice(0, (decIndex + 1))
+                        
+                        preRoundLen = newVal.length
+                        newVal = Number(newVal) + 1
+                        newVal = newVal.toString()
+                        postRoundLen = newVal.length
+                
+                        
+                        if (newVal.length > (fifteenIndex - decIndex)) {
+                            newVal = ""
+                            if (intNum[0] == "-")
+                                intNum = Number(intNum) - 1
+                            else
+                                intNum = Number(intNum) + 1
+                            intNum = intNum.toString()
+                        }
+                        else if (postRoundLen > preRoundLen) {
+                            for (let i = 0; i < (decDigitCount - nonZeroDecDigitCount - 1); i++)
+                                intNum = intNum + "0"
+                        }
+                        else {
+                            for (let i = 0; i < (decDigitCount - nonZeroDecDigitCount); i++)
+                                intNum = intNum + "0"
+                        }
+                        num = intNum + newVal
+                    }
+                    else
+                        num = num.slice(0, fifteenIndex + 1)
+                    digitCount = 15
+                }
+                else {
+                    if (decIndex != length - 1) {
+                        if (Number(num[decIndex + 1]) > 4) {
+                            if (num[0] == "-")
+                                num = Number(num.slice(0, decIndex)) - 1
+                            else 
+                                num = Number(num.slice(0, decIndex)) + 1
+                        }
+                        else
+                            num = num.slice(0, decIndex)
+                    }
+                    else
+                        num = num.slice(0, decIndex)
+                    digitCount = decIndex
+                }
+                num = num.toString()  
+            }
+
+            if (digitCount > 15 && eIndex == -1) {
+                let negSign = false
+                if (num[0] == "-") {
+                    negSign = true
+                    num = num.slice(1)
+                }
+                num = num.slice(0, 10)
+                if (num[9] > 4) 
+                    num = Number(num.slice(0, 9)) + 1
+                else 
+                    num = Number(num.slice(0, 9))
+                num = num.toString()
+                num = num.slice(0, 1) + "." + num.slice(1) + "e+" + (digitCount - 1).toString()
+                if (negSign == true)
+                    num = "-" + num
+            }
+            return num
+        }
+
+        let length = formula.length
+        let calculation = 0
+        if (formula == "ERROR")
+            return "ERROR"
+        // Solve parentheses using recursion.
+        let parenthesesSize = 0
+        for (let i = 0; i < length; i++) {
+            if (formula[i] == "(") {
+                let openCount = 1
+                let closedCount = 0
+                for (let j = i + 1; j < length; j++) {
+                    if (formula[j] == "(")
+                        openCount++
+                    else if (formula[j] == ")")
+                        closedCount++
+                    if (openCount == closedCount)  {
+                        parenthesesSize = (j - i) + 1
+                        let localCalc = 0
+                        localCalc = calculate(formula.slice((i + 1), j))
+                        if (localCalc == "ERROR")
+                            return "ERROR"
+                        formula.splice(i, parenthesesSize, localCalc)
+                        length = formula.length
+                        break
+                    }
+                }
+            }
+        }
+
+        // Solve multiplications and divisions.
+        for (let i = 0; i < length; i++) {
+            if ((formula[i] == "*" || formula[i] == "/") && i != (length - 1)) {
+                let localCalc = 0
+                let num1 = Number(precision(formula[i - 1]))
+                let num2 = Number(precision(formula[i + 1]))
+                if (formula[i] == "*")
+                    localCalc = num1 * num2
+                else {
+                    if (num2 == 0)
+                        return "ERROR"
+                    else
+                        localCalc = num1 / num2
+                }
+                localCalc = precision(localCalc.toString())
+                formula.splice(i - 1, 3, localCalc)
+                length = formula.length
+                i = i - 1
+            }
+        }
+
+        // Solve additions and subtractions.
+        let sum = false
+        let sub = false
+        for (let i = 0; i < length; i++) {
+            let num = Number(precision(formula[i]))
+            if (!isNaN(num)) {
+                if (sum || i == 0) {
+                    calculation = calculation + num
+                    sum = false
+                }
+                else if (sub) {
+                    calculation = calculation - num
+                    sub = false
+                }
+                calculation = Number(precision(calculation.toString()))
+            }
+            else if (formula[i] == "+") 
+                sum = true
+            else if (formula[i] == "-") 
+                sub = true
+        }
+        return precision(calculation.toString())
+    }
+
+    let completedFormula = "0" // Global variable that holds the parsed formula with completed paratheses
+    // Parses the formula to be later solved.
+    function parse (formula) {
+        let parsedFormula = [""]
+        let parsedFormulaIndex = 0
+
+        function next() {
+            if (parsedFormula[parsedFormulaIndex] != "") {
+                parsedFormula.push("")
+                parsedFormulaIndex++
+            }
+        }
+
+        let parsedFormulaLen = parsedFormula.length
+        let length = formula.length
+        for (let i = 0; i < length; i++) {
+            if (typeId(formula[i]) == 1) {
+                if (formula[i] == "%") {
+                    let percentageOfFormula = ""
+                    let percentageOperatorIndex = -1
+                    let closedCount = 0
+                    for (let j = i - 1; j >= 0; j--) {
+                        if (j == (i - 1) && formula[j] == ")") {
+                            percentageOperatorIndex = "pendingOpen"
+                            closedCount++
+                            continue
+                        } 
+                        if (percentageOperatorIndex == "pendingOpen"){
+                            if (closedCount == 0)
+                                percentageOperatorIndex = -1
+                            else if ((formula[j] == "(" && closedCount > 0))
+                                closedCount--
+                            else if (formula[j] == ")")
+                                closedCount++
+                        }
+                        if (percentageOperatorIndex != "pendingOpen"){
+                            if (typeId(formula[j]) == 0 && percentageOperatorIndex == -1) {
+                                if (j > 0) {
+                                    if (formula[j - 1] == "e")
+                                        continue
+                                }
+                                if (formula[j] == "+" || formula[j] == "-") {
+                                    percentageOperatorIndex = j
+                                    if (formula[j] == "-" && j > 0){
+                                        if (formula[j - 1] == "(")
+                                            percentageOperatorIndex = -1
+                                    }
+                                }    
+                                else {
+                                    percentageOperatorIndex = -1
+                                    break
+                                }    
+                            }
+                            else if (formula[j] == "(" && closedCount == 0)
+                                break
+                            else if ((formula[j] == "(" && closedCount > 0))
+                                closedCount--
+                            else if (formula[j] == ")")
+                                closedCount++
+                            if (percentageOperatorIndex != -1 && percentageOperatorIndex > j)
+                                percentageOfFormula = formula[j] + percentageOfFormula
+                        }
+                    }
+                    if (percentageOperatorIndex == "pendingOpen")
+                        percentageOperatorIndex = -1
+                    if (i < length - 1) {
+                        if (formula[i + 1] == "×" || formula[i + 1] == "÷")
+                            percentageOfFormula = ""
+                    }
+                    if (percentageOfFormula != "")
+                        percentageOfFormula = calculate(parse(percentageOfFormula))
+                    next()
+                    if (parsedFormula[parsedFormulaIndex - 1] == ")") {
+                        parsedFormulaLen = parsedFormula.length
+                        let closedCount = 0
+                        let openIndex = -1
+                        for (let j = parsedFormulaLen - 1; j >= 0; j--) {
+                            if (parsedFormula[j] == ")")
+                                closedCount++
+                            else if (parsedFormula[j] == "(" && closedCount == 1) 
+                                openIndex = j
+                            else if (parsedFormula[j] == "(") 
+                                closedCount--
+                        }
+                        parsedFormula.splice(openIndex, 0, "(")
+                        parsedFormulaIndex++
+                    }
+                    else {
+                        next()
+                        parsedFormula[parsedFormulaIndex] = parsedFormula[parsedFormulaIndex - 1]
+                        parsedFormula[parsedFormulaIndex - 1] = "("
+                        next()
+                    }
+                    parsedFormula[parsedFormulaIndex] = "/"
+                    next()
+                    parsedFormula[parsedFormulaIndex] = "100"
+                    next()
+                    parsedFormula[parsedFormulaIndex] = ")"
+                    if (percentageOfFormula != "" && percentageOfFormula != "ERROR") {
+                        next()
+                        parsedFormula[parsedFormulaIndex] = "*"
+                        next()
+                        parsedFormula[parsedFormulaIndex] = percentageOfFormula
+                    }
+                }
+                else if (formula[i] == "e") {
+                    if (formula[i + 1] == "-")
+                        parsedFormula[parsedFormulaIndex] = parsedFormula[parsedFormulaIndex] + "e-" + formula[i + 2]
+                    else
+                        parsedFormula[parsedFormulaIndex] = parsedFormula[parsedFormulaIndex] + "e" + formula[i + 1] + formula[i + 2]
+                    i+=2
+                }
+                else if ((typeId(parsedFormula[parsedFormulaIndex]) == 1))
+                    parsedFormula[parsedFormulaIndex] = parsedFormula[parsedFormulaIndex] + formula[i]
+                else {
+                    next()
+                    parsedFormula[parsedFormulaIndex] = parsedFormula[parsedFormulaIndex] + formula[i]
+                }
+            } 
+            else {
+                next()
+                if (formula[i] == "×" && i < (length - 1))
+                    parsedFormula[parsedFormulaIndex] = "*"
+                else if (formula[i] == "+" && i < (length - 1)) 
+                    parsedFormula[parsedFormulaIndex] = "+"
+                else if (formula[i] == "-" && i < (length - 1)) 
+                    parsedFormula[parsedFormulaIndex] = "-"
+                else if (formula[i] == "÷" && i < (length - 1))
+                    parsedFormula[parsedFormulaIndex] = "/"
+                else if (formula[i] == "(" && i < (length - 1)) 
+                    parsedFormula[parsedFormulaIndex] = "("
+                else if (formula[i] == ")") 
+                    parsedFormula[parsedFormulaIndex] = ")"
+                else if (i == (length - 1)) 
+                    return "ERROR"
+            } 
+        }
+
+        let sumLeft = 0
+        let sumRight = 0
+        parsedFormulaLen = parsedFormula.length
+        for (let i = 0; i < parsedFormulaLen; i++) {
+            if (parsedFormula[i] == "(")
+                sumLeft++
+            else if (parsedFormula[i] == ")")
+                sumRight++
+        }
+        completedFormula = formula
+        while (sumLeft > sumRight) {
+            next()
+            completedFormula = completedFormula + ")"
+            parsedFormula[parsedFormulaIndex] = ")"
+            sumRight++
+        }
+
+        return parsedFormula
+    }
+
+    // Adds commas for every 3 integer digits, adds/removes line breaks
+    function fancy (formula) {
+        let length = formula.length
+        if (formula == "ERROR" || formula == "Infinity" || formula == "-Infinity")
+            return formula
+        
+        // adds commas
+        length = formula.length
+        let intNums = ""
+        let fancyFormula = ""
+        for (let i = 0; i < length; i++) {
+            if (!isNaN(Number(formula[i])))
+                intNums = intNums + formula[i]
+            if (typeId(formula[i]) == 0 || formula[i] == "%" || typeId(formula[i]) == 2|| i == length - 1 || formula[i] == "." || formula[i] == "e") {
+                let intNumsLen = intNums.length
+                let fancy = ""
+                for (let k = intNumsLen - 4; k >= 0; k = k - 3) {
+                    if (k == intNumsLen - 4)
+                        fancy = "," + intNums.slice(k + 1) + fancy
+                    else
+                        fancy = "," + intNums.slice(k + 1, k + 4) + fancy
+                }
+                    
+                if (intNumsLen % 3 == 2) 
+                    fancy = intNums.slice(0, 2) + fancy
+                if (intNumsLen % 3 == 1)
+                    fancy = intNums[0] + fancy
+                if (intNumsLen % 3 == 0)
+                    fancy = intNums.slice(0, 3) + fancy
+
+                let end = ""
+                let j = i
+                let savedIndex = -1
+                if (formula[j] == ".") {
+                    while (j < length && typeId(formula[j]) != 0 && formula[j] != "%" && typeId(formula[j]) != 2 && formula[j] != "e") {
+                        end = end + formula[j]
+                        savedIndex = j
+                        j++
+                    }
+                }
+                while (j < length && isNaN(Number(formula[j]))) {
+                    end = end + formula[j]
+                    savedIndex = j
+                    j++
+                }
+                if (savedIndex != -1)
+                    i = savedIndex 
+
+                fancyFormula = fancyFormula + fancy + end
+                intNums = ""
+            }
+        }
+        formula = fancyFormula
+
+        // adds line breaks
+        length = formula.length
+        let unbrokenChars = 0
+        for (let i = 0; i < length; i++) {
+            if (formula[i] != "\n")
+                unbrokenChars++
+            else
+                unbrokenChars = 0
+
+            if (unbrokenChars > 22) {
+                for (let j = i; j >= 0; j--) {
+                    if (typeId(formula[j]) == 0 || formula[j] == "(" || formula[j] == ")") {
+                        if (typeId(formula[j]) == 0 && j > 0) {
+                            if (formula[j - 1] == "e")
+                                continue
+                        }
+                        if (j != 0) {
+                            if (formula[j - 1] != "\n") {
+                                formula = formula.slice(0, j) + "\n" + formula.slice(j)
+                                i--
+                                length++
+                                unbrokenChars = 0
+                            }
+                        }
+                        break
+                    }
+                }
+            }
+        }
+
+        // removes unecessary line breaks
+        length = formula.length
+        for (let i = 0; i < length; i++) {
+            if (formula[i] == "\n") {
+                let leftChars = 0
+                let rightChars = 0
+                for (let j = i; j < length; j++) {
+                    if (formula[j] == "\n" && j != i) 
+                        break
+                    else if (j != i)
+                        rightChars++
+                }
+                for (let k = i; k >= 0; k--) {
+                    if (formula[k] == "\n" && k != i) 
+                        break
+                    else if (k != i)
+                        leftChars++
+                }
+                if (leftChars + rightChars <= 22) {
+                    if (i == length - 1)
+                        formula = formula.slice(0, i)
+                    else if (i == 0)
+                        formula = formula.slice(i + 1)
+                    else 
+                        formula = formula.slice(0, i) + formula.slice(i + 1)
+                }
+            }
+        }
+
+        return formula
+    }
+
+    // Automatically shows a preview of the current calculation being typed
+    function preCalc (formula) {
+        let operationPresent = false
+        let length = formula.length
+        if (formula == "=") 
+            formula = ""
+        else {
+            for (let i = 0; i < length; i++) {
+                if (formula[i] == "e") {
+                    i++
+                    continue
+                }
+                if (typeId(formula[i]) == 0) {
+                    if (i == 0) 
+                        continue
+                    operationPresent = true
+                }  
+                else if (formula[i] == "%")
+                    operationPresent = true
+                if (operationPresent)
+                    break
+            }
+        }
+        if (operationPresent) {
+            let nonFancy = ""
+            for (let i = 0; i < length; i++) {
+                if (formula[i] != "," && formula[i] != "\n" && formula[i] != " " && formula[i] != "<" && formula[i] != "b" && formula[i] != "r" && formula[i] != ">") 
+                    nonFancy = nonFancy + formula[i]  
+            }
+            formula = nonFancy
+            formula = calculate(parse(formula))
+            if (formula == "ERROR")
+                formula = ""
+        }
+        else
+            formula = ""
+        $('#answerDisplay').html("= " + fancy(formula))
+    }
+
     let trigger = ""
     let pastedTrigger = false
     if (event.target == undefined) 
@@ -210,7 +796,6 @@ function read(event) {
         formula = nonFancy
         length = formula.length
     }
-
     let preFormula = formula
 
     if (nonFancyLoc == length)
@@ -294,6 +879,29 @@ function read(event) {
             if (historyIndex >= 0)
                 lastHistOperation = $('#listContainer').children().eq(historyIndex).children().first().html()
             if (lastHistOperation != preFormula) {
+                // Adds calculations to history container
+                function appendHistory (string) {
+                    let text
+                    let list = $("<li></li>")
+                    let button = $("<button id='histButton' type='button' onclick='buttonClick(event);calcHistory(event)'></button>")
+                    let container = $('#listContainer')
+
+                    let stringLen = string.length
+                    let startOfChunk = 0
+                    for (let i = 0; i < stringLen; i++) {
+                        if (string[i] == "\n" && i < stringLen - 1) {
+                            text = document.createTextNode(string.slice(startOfChunk, i))
+                            startOfChunk = i + 1
+                            button.append(text)
+                            button.append($("<br>"))
+                        } 
+                    }
+                    text = document.createTextNode(string.slice(startOfChunk))
+                    button.append(text)
+                    list.append(button)
+                    container.append(list)
+                    buttonsRunning[container.children().last().children().first().html()] = false
+                }
                 appendHistory(fancy(preFormula))
                 appendHistory("= " + fancy(postFormula))
             }
@@ -630,32 +1238,6 @@ function read(event) {
     return errorCode
 }
 
-// Changes what is on the display and adjusts the cursor location based on the adjusted display
-function setScreen(string) {
-    let fancyString = fancy(string)
-    $('#display').html(fancyString)
-    if (cursorPresent == false) {
-        loc = fancyString.length
-        endloc = loc
-    }
-    else {
-        let fancyIndex = 0
-        let strIndex = 0
-        while (strIndex < endloc) {
-            if (string[strIndex] == fancyString[fancyIndex]) {
-                strIndex++
-                fancyIndex++
-            }
-            else 
-                fancyIndex++
-        }
-        endloc = fancyIndex
-        loc = fancyIndex
-    }
-    input.setSelectionRange(loc, endloc)
-    resize()
-}
-
 // Gets cursor location when display is clicked on
 function focused() {
     cursorPresent = true
@@ -693,76 +1275,17 @@ function calcHistory(event) {
         $('#numPad')[0].style.display = "block"
         $('#showHistory').html("Hist")
     }
-    else if (trigger == "Clear") 
-        $('#listContainer').empty()
+    else if (trigger == "Clear") {
+        $('#listContainer').children().each(function () {
+            delete buttonsRunning[$('#listContainer').children().last().children().first().html()]
+            $('#listContainer').children().last().remove()
+        })
+    }  
     else {
         if (trigger[0] == "=")
             trigger = trigger.slice(1)
         read(trigger)
     }
-}
-
-// Automatically shows a preview of the current calculation being typed
-function preCalc (formula) {
-    let operationPresent = false
-    let length = formula.length
-    if (formula == "=") 
-        formula = ""
-    else {
-        for (let i = 0; i < length; i++) {
-            if (formula[i] == "e") {
-                i++
-                continue
-            }
-            if (typeId(formula[i]) == 0) {
-                if (i == 0) 
-                    continue
-                operationPresent = true
-            }  
-            else if (formula[i] == "%")
-                operationPresent = true
-            if (operationPresent)
-                break
-        }
-    }
-    if (operationPresent) {
-        let nonFancy = ""
-        for (let i = 0; i < length; i++) {
-            if (formula[i] != "," && formula[i] != "\n" && formula[i] != " " && formula[i] != "<" && formula[i] != "b" && formula[i] != "r" && formula[i] != ">") 
-                nonFancy = nonFancy + formula[i]  
-        }
-        formula = nonFancy
-        formula = calculate(parse(formula))
-        if (formula == "ERROR")
-            formula = ""
-    }
-    else
-        formula = ""
-    $('#answerDisplay').html("= " + fancy(formula))
-}
-
-// Adds calculations to history container
-function appendHistory (string) {
-    let text
-    let list = $("<li></li>")
-    let button = $("<button id='histButton' type='button' onclick='buttonClick(event);calcHistory(event)'></button>")
-    let container = $('#listContainer')
-
-    let stringLen = string.length
-    let startOfChunk = 0
-    for (let i = 0; i < stringLen; i++) {
-        if (string[i] == "\n" && i < stringLen - 1) {
-            text = document.createTextNode(string.slice(startOfChunk, i))
-            startOfChunk = i + 1
-            button.append(text)
-            button.append($("<br>"))
-        } 
-    }
-    text = document.createTextNode(string.slice(startOfChunk))
-    button.append(text)
-    list.append(button)
-    container.append(list)
-    buttonsRunning[container.last().first().html()] = false
 }
 
 // Animates buttons when clicked
@@ -828,412 +1351,6 @@ function buttonClick(event) {
     }
 }
 
-// Global variable that holds the parsed formula with completed paratheses
-let completedFormula = "0"
-// Parses the formula to be later solved.
-function parse (formula) {
-    let parsedFormula = [""]
-    let parsedFormulaIndex = 0
-
-    function next() {
-        if (parsedFormula[parsedFormulaIndex] != "") {
-            parsedFormula.push("")
-            parsedFormulaIndex++
-        }
-    }
-
-    let parsedFormulaLen = parsedFormula.length
-    let length = formula.length
-    for (let i = 0; i < length; i++) {
-        if (typeId(formula[i]) == 1) {
-            if (formula[i] == "%") {
-                let percentageOfFormula = ""
-                let percentageOperatorIndex = -1
-                let closedCount = 0
-                for (let j = i - 1; j >= 0; j--) {
-                    if (j == (i - 1) && formula[j] == ")") {
-                        percentageOperatorIndex = "pendingOpen"
-                        closedCount++
-                        continue
-                    } 
-                    if (percentageOperatorIndex == "pendingOpen"){
-                        if (closedCount == 0)
-                            percentageOperatorIndex = -1
-                        else if ((formula[j] == "(" && closedCount > 0))
-                            closedCount--
-                        else if (formula[j] == ")")
-                            closedCount++
-                    }
-                    if (percentageOperatorIndex != "pendingOpen"){
-                        if (typeId(formula[j]) == 0 && percentageOperatorIndex == -1) {
-                            if (j > 0) {
-                                if (formula[j - 1] == "e")
-                                    continue
-                            }
-                            if (formula[j] == "+" || formula[j] == "-") {
-                                percentageOperatorIndex = j
-                                if (formula[j] == "-" && j > 0){
-                                    if (formula[j - 1] == "(")
-                                        percentageOperatorIndex = -1
-                                }
-                            }    
-                            else {
-                                percentageOperatorIndex = -1
-                                break
-                            }    
-                        }
-                        else if (formula[j] == "(" && closedCount == 0)
-                            break
-                        else if ((formula[j] == "(" && closedCount > 0))
-                            closedCount--
-                        else if (formula[j] == ")")
-                            closedCount++
-                        if (percentageOperatorIndex != -1 && percentageOperatorIndex > j)
-                            percentageOfFormula = formula[j] + percentageOfFormula
-                    }
-                }
-                if (percentageOperatorIndex == "pendingOpen")
-                    percentageOperatorIndex = -1
-                if (i < length - 1) {
-                    if (formula[i + 1] == "×" || formula[i + 1] == "÷")
-                        percentageOfFormula = ""
-                }
-                if (percentageOfFormula != "")
-                    percentageOfFormula = calculate(parse(percentageOfFormula))
-                next()
-                if (parsedFormula[parsedFormulaIndex - 1] == ")") {
-                    parsedFormulaLen = parsedFormula.length
-                    let closedCount = 0
-                    let openIndex = -1
-                    for (let j = parsedFormulaLen - 1; j >= 0; j--) {
-                        if (parsedFormula[j] == ")")
-                            closedCount++
-                        else if (parsedFormula[j] == "(" && closedCount == 1) 
-                            openIndex = j
-                        else if (parsedFormula[j] == "(") 
-                            closedCount--
-                    }
-                    parsedFormula.splice(openIndex, 0, "(")
-                    parsedFormulaIndex++
-                }
-                else {
-                    next()
-                    parsedFormula[parsedFormulaIndex] = parsedFormula[parsedFormulaIndex - 1]
-                    parsedFormula[parsedFormulaIndex - 1] = "("
-                    next()
-                }
-                parsedFormula[parsedFormulaIndex] = "/"
-                next()
-                parsedFormula[parsedFormulaIndex] = "100"
-                next()
-                parsedFormula[parsedFormulaIndex] = ")"
-                if (percentageOfFormula != "" && percentageOfFormula != "ERROR") {
-                    next()
-                    parsedFormula[parsedFormulaIndex] = "*"
-                    next()
-                    parsedFormula[parsedFormulaIndex] = percentageOfFormula
-                }
-            }
-            else if (formula[i] == "e") {
-                if (formula[i + 1] == "-")
-                    parsedFormula[parsedFormulaIndex] = parsedFormula[parsedFormulaIndex] + "e-" + formula[i + 2]
-                else
-                    parsedFormula[parsedFormulaIndex] = parsedFormula[parsedFormulaIndex] + "e" + formula[i + 1] + formula[i + 2]
-                i+=2
-            }
-            else if ((typeId(parsedFormula[parsedFormulaIndex]) == 1))
-                parsedFormula[parsedFormulaIndex] = parsedFormula[parsedFormulaIndex] + formula[i]
-            else {
-                next()
-                parsedFormula[parsedFormulaIndex] = parsedFormula[parsedFormulaIndex] + formula[i]
-            }
-        } 
-        else {
-            next()
-            if (formula[i] == "×" && i < (length - 1))
-                parsedFormula[parsedFormulaIndex] = "*"
-            else if (formula[i] == "+" && i < (length - 1)) 
-                parsedFormula[parsedFormulaIndex] = "+"
-            else if (formula[i] == "-" && i < (length - 1)) 
-                parsedFormula[parsedFormulaIndex] = "-"
-            else if (formula[i] == "÷" && i < (length - 1))
-                parsedFormula[parsedFormulaIndex] = "/"
-            else if (formula[i] == "(" && i < (length - 1)) 
-                parsedFormula[parsedFormulaIndex] = "("
-            else if (formula[i] == ")") 
-                parsedFormula[parsedFormulaIndex] = ")"
-            else if (i == (length - 1)) 
-                return "ERROR"
-        } 
-    }
-
-    let sumLeft = 0
-    let sumRight = 0
-    parsedFormulaLen = parsedFormula.length
-    for (let i = 0; i < parsedFormulaLen; i++) {
-        if (parsedFormula[i] == "(")
-            sumLeft++
-        else if (parsedFormula[i] == ")")
-            sumRight++
-    }
-    completedFormula = formula
-    while (sumLeft > sumRight) {
-        next()
-        completedFormula = completedFormula + ")"
-        parsedFormula[parsedFormulaIndex] = ")"
-        sumRight++
-    }
-
-    return parsedFormula
-}
-
-// Calculates the parsed formula.
-// Recall - PEMDAS.
-function calculate (formula) {
-    let length = formula.length
-    let calculation = 0
-    if (formula == "ERROR")
-        return "ERROR"
-    // Solve parentheses using recursion.
-    let parenthesesSize = 0
-    for (let i = 0; i < length; i++) {
-        if (formula[i] == "(") {
-            let openCount = 1
-            let closedCount = 0
-            for (let j = i + 1; j < length; j++) {
-                if (formula[j] == "(")
-                    openCount++
-                else if (formula[j] == ")")
-                    closedCount++
-                if (openCount == closedCount)  {
-                    parenthesesSize = (j - i) + 1
-                    let localCalc = 0
-                    localCalc = calculate(formula.slice((i + 1), j))
-                    if (localCalc == "ERROR")
-                        return "ERROR"
-                    formula.splice(i, parenthesesSize, localCalc)
-                    length = formula.length
-                    break
-                }
-            }
-        }
-    }
-
-    // Solve multiplications and divisions.
-    for (let i = 0; i < length; i++) {
-        if ((formula[i] == "*" || formula[i] == "/") && i != (length - 1)) {
-            let localCalc = 0
-            let num1 = Number(precision(formula[i - 1]))
-            let num2 = Number(precision(formula[i + 1]))
-            if (formula[i] == "*")
-                localCalc = num1 * num2
-            else {
-                if (num2 == 0)
-                    return "ERROR"
-                else
-                    localCalc = num1 / num2
-            }
-            localCalc = precision(localCalc.toString())
-            formula.splice(i - 1, 3, localCalc)
-            length = formula.length
-            i = i - 1
-        }
-    }
-
-    // Solve additions and subtractions.
-    let sum = false
-    let sub = false
-    for (let i = 0; i < length; i++) {
-        let num = Number(precision(formula[i]))
-        if (!isNaN(num)) {
-            if (sum || i == 0) {
-                calculation = calculation + num
-                sum = false
-            }
-            else if (sub) {
-                calculation = calculation - num
-                sub = false
-            }
-            calculation = Number(precision(calculation.toString()))
-        }
-        else if (formula[i] == "+") 
-            sum = true
-        else if (formula[i] == "-") 
-            sub = true
-    }
-    return precision(calculation.toString())
-}
-
-// Limits size of calculated numbers to 10 digits after the decimal,
-// this is due to Javascript's floating point number innaccuracy.
-// Limits size of calculated numbers to 15 digits total.
-function precision(num) {
-    if (num == "0")
-        return num
-
-    // Counts number of digits after the decimal
-    let dec = false
-    let decDigitCount = 0
-    let nonZeroDecDigitCount = 0
-    let nonZeroIndex = -1
-    let tempNum = ""
-    let decIndex = -1
-    let eIndex = -1
-    let length = num.length
-
-    for (let i = 0; i < length; i++) {
-        if (num[i] == ".") {
-            dec = true
-            decIndex = i
-            continue
-        }
-        if (num[i] == "e") {
-            eIndex = i
-            if (dec == false)
-                return num
-            dec = false
-        }
-        if (dec) {
-            decDigitCount++
-            if (num[i] != "0" && nonZeroIndex == -1) 
-                nonZeroIndex = i
-            if (nonZeroIndex != -1 && eIndex == -1)
-                nonZeroDecDigitCount++
-        }
-        if (decDigitCount == 11 && dec) {
-            if ((i + 1) > (length - 1)) 
-                tempNum = num
-            else
-                tempNum = num.slice(0, i + 1)
-        }
-    }
-
-    let eQuantity = ""
-    if (eIndex != -1)
-        eQuantity = num.slice(eIndex)
-    
-    if (tempNum != "") {
-        if (Number(tempNum[tempNum.length - 1]) > 4){
-            let newVal = tempNum.slice(nonZeroIndex)
-            let preRoundLen = 0
-            let postRoundLen = 0
-            tempNum = tempNum.slice(0, (decIndex + 1))
-            
-            preRoundLen = newVal.length
-            newVal = Number(newVal) + 1
-            newVal = newVal.toString()
-            postRoundLen = newVal.length
-    
-            
-            if (newVal.length > 11) {
-                newVal = ""
-                if (tempNum[0] == "-")
-                    tempNum = Number(tempNum) - 1
-                else
-                    tempNum = Number(tempNum) + 1
-                tempNum = tempNum.toString()
-            }
-            else if (postRoundLen > preRoundLen) {
-                for (let i = 0; i < (decDigitCount - nonZeroDecDigitCount - 1); i++)
-                    tempNum = tempNum + "0"
-            }
-            else {
-                for (let i = 0; i < (decDigitCount - nonZeroDecDigitCount); i++)
-                    tempNum = tempNum + "0"
-            }
-            num = tempNum + newVal + eQuantity
-        }   
-        else 
-            num = tempNum.slice(0, (tempNum.length - 1)) + eQuantity
-    }
-
-    let digitCount = 0
-    let fifteenIndex = -1
-    let sixteenIndex = -1
-    length = num.length
-    for (let i = 0; i < length; i++) {
-        if (!isNaN(Number(num[i]))) {
-            digitCount++
-            if (digitCount == 15) 
-                fifteenIndex = i
-            else if (digitCount == 16)
-                sixteenIndex = i
-        }
-    }
-
-    if (decIndex != -1 && digitCount > 15 && eIndex == -1) {
-        if (decIndex < fifteenIndex) {
-            if (Number(num[sixteenIndex]) > 4) {
-                let newVal = num.slice(nonZeroIndex, fifteenIndex + 1)
-                let preRoundLen = 0
-                let postRoundLen = 0
-                let intNum = num.slice(0, (decIndex + 1))
-                
-                preRoundLen = newVal.length
-                newVal = Number(newVal) + 1
-                newVal = newVal.toString()
-                postRoundLen = newVal.length
-        
-                
-                if (newVal.length > (fifteenIndex - decIndex)) {
-                    newVal = ""
-                    if (intNum[0] == "-")
-                        intNum = Number(intNum) - 1
-                    else
-                        intNum = Number(intNum) + 1
-                    intNum = intNum.toString()
-                }
-                else if (postRoundLen > preRoundLen) {
-                    for (let i = 0; i < (decDigitCount - nonZeroDecDigitCount - 1); i++)
-                        intNum = intNum + "0"
-                }
-                else {
-                    for (let i = 0; i < (decDigitCount - nonZeroDecDigitCount); i++)
-                        intNum = intNum + "0"
-                }
-                num = intNum + newVal
-            }
-            else
-                num = num.slice(0, fifteenIndex + 1)
-            digitCount = 15
-        }
-        else {
-            if (decIndex != length - 1) {
-                if (Number(num[decIndex + 1]) > 4) {
-                    if (num[0] == "-")
-                        num = Number(num.slice(0, decIndex)) - 1
-                    else 
-                        num = Number(num.slice(0, decIndex)) + 1
-                }
-                else
-                    num = num.slice(0, decIndex)
-            }
-            else
-                num = num.slice(0, decIndex)
-            digitCount = decIndex
-        }
-        num = num.toString()  
-    }
-
-    if (digitCount > 15 && eIndex == -1) {
-        let negSign = false
-        if (num[0] == "-") {
-            negSign = true
-            num = num.slice(1)
-        }
-        num = num.slice(0, 10)
-        if (num[9] > 4) 
-            num = Number(num.slice(0, 9)) + 1
-        else 
-            num = Number(num.slice(0, 9))
-        num = num.toString()
-        num = num.slice(0, 1) + "." + num.slice(1) + "e+" + (digitCount - 1).toString()
-        if (negSign == true)
-            num = "-" + num
-    }
-    return num
-}
-
 // Returns 0 if value is a mathematical operator, 1 if it's a number/numeric syntax, 2 if it's paranthesis, 3 if it's misc syntax, and -1 if it's neither.
 function typeId (value) {
     if (value != undefined) {
@@ -1251,120 +1368,4 @@ function typeId (value) {
         }
     }
     return -1
-}
-
-// Adds commas for every 3 integer digits, adds/removes line breaks
-function fancy (formula) {
-    let length = formula.length
-    if (formula == "ERROR" || formula == "Infinity" || formula == "-Infinity")
-        return formula
-    
-    // adds commas
-    length = formula.length
-    let intNums = ""
-    let fancyFormula = ""
-    for (let i = 0; i < length; i++) {
-        if (!isNaN(Number(formula[i])))
-            intNums = intNums + formula[i]
-        if (typeId(formula[i]) == 0 || formula[i] == "%" || typeId(formula[i]) == 2|| i == length - 1 || formula[i] == "." || formula[i] == "e") {
-            let intNumsLen = intNums.length
-            let fancy = ""
-            for (let k = intNumsLen - 4; k >= 0; k = k - 3) {
-                if (k == intNumsLen - 4)
-                    fancy = "," + intNums.slice(k + 1) + fancy
-                else
-                    fancy = "," + intNums.slice(k + 1, k + 4) + fancy
-            }
-                
-            if (intNumsLen % 3 == 2) 
-                fancy = intNums.slice(0, 2) + fancy
-            if (intNumsLen % 3 == 1)
-                fancy = intNums[0] + fancy
-            if (intNumsLen % 3 == 0)
-                fancy = intNums.slice(0, 3) + fancy
-
-            let end = ""
-            let j = i
-            let savedIndex = -1
-            if (formula[j] == ".") {
-                while (j < length && typeId(formula[j]) != 0 && formula[j] != "%" && typeId(formula[j]) != 2 && formula[j] != "e") {
-                    end = end + formula[j]
-                    savedIndex = j
-                    j++
-                }
-            }
-            while (j < length && isNaN(Number(formula[j]))) {
-                end = end + formula[j]
-                savedIndex = j
-                j++
-            }
-            if (savedIndex != -1)
-                i = savedIndex 
-
-            fancyFormula = fancyFormula + fancy + end
-            intNums = ""
-        }
-    }
-    formula = fancyFormula
-
-    // adds line breaks
-    length = formula.length
-    let unbrokenChars = 0
-    for (let i = 0; i < length; i++) {
-        if (formula[i] != "\n")
-            unbrokenChars++
-        else
-            unbrokenChars = 0
-
-        if (unbrokenChars > 22) {
-            for (let j = i; j >= 0; j--) {
-                if (typeId(formula[j]) == 0 || formula[j] == "(" || formula[j] == ")") {
-                    if (typeId(formula[j]) == 0 && j > 0) {
-                        if (formula[j - 1] == "e")
-                            continue
-                    }
-                    if (j != 0) {
-                        if (formula[j - 1] != "\n") {
-                            formula = formula.slice(0, j) + "\n" + formula.slice(j)
-                            i--
-                            length++
-                            unbrokenChars = 0
-                        }
-                    }
-                    break
-                }
-            }
-        }
-    }
-
-    // removes unecessary line breaks
-    length = formula.length
-    for (let i = 0; i < length; i++) {
-        if (formula[i] == "\n") {
-            let leftChars = 0
-            let rightChars = 0
-            for (let j = i; j < length; j++) {
-                if (formula[j] == "\n" && j != i) 
-                    break
-                else if (j != i)
-                    rightChars++
-            }
-            for (let k = i; k >= 0; k--) {
-                if (formula[k] == "\n" && k != i) 
-                    break
-                else if (k != i)
-                    leftChars++
-            }
-            if (leftChars + rightChars <= 22) {
-                if (i == length - 1)
-                    formula = formula.slice(0, i)
-                else if (i == 0)
-                    formula = formula.slice(i + 1)
-                else 
-                    formula = formula.slice(0, i) + formula.slice(i + 1)
-            }
-        }
-    }
-
-    return formula
 }
