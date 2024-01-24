@@ -19,4 +19,4 @@ Still adding features - with plans to make a fully functioning scientific calcul
 
 ## Access
 
-You can access a live version [here.](https://mr-ferreira.github.io/Calculator/).
+You can access a live version [here.](https://mr-ferreira.github.io/Calculator/)
