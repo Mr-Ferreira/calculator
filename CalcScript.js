@@ -700,30 +700,33 @@ function read(event) {
         return formula
     }
 
+    // Checks if an operation exists and returns a boolean
+    function operationPresent (formula){
+        let operationPresence = false
+        let length = formula.length
+        for (let i = 0; i < length; i++) {
+            if (formula[i] == "e") {
+                i++
+                continue
+            }
+            if (typeId(formula[i]) == 0 && i > 0 && i < length - 1) {
+                if (typeId(formula[i + 1]) == 1 && typeId(formula[i - 1]) == 1) 
+                    operationPresence = true 
+            }  
+            else if (formula[i] == "%")
+                operationPresence = true
+            if (operationPresence)
+                break
+        }
+        return operationPresence
+    }
+
     // Automatically shows a preview of the current calculation being typed
     function preCalc (formula) {
-        let operationPresent = false
         let length = formula.length
         if (formula == "=") 
             formula = ""
-        else {
-            for (let i = 0; i < length; i++) {
-                if (formula[i] == "e") {
-                    i++
-                    continue
-                }
-                if (typeId(formula[i]) == 0) {
-                    if (i == 0) 
-                        continue
-                    operationPresent = true
-                }  
-                else if (formula[i] == "%")
-                    operationPresent = true
-                if (operationPresent)
-                    break
-            }
-        }
-        if (operationPresent) {
+        if (operationPresent(formula)) {
             let nonFancy = ""
             for (let i = 0; i < length; i++) {
                 if (formula[i] != "," && formula[i] != "\n" && formula[i] != " " && formula[i] != "<" && formula[i] != "b" && formula[i] != "r" && formula[i] != ">") 
@@ -738,6 +741,7 @@ function read(event) {
             formula = ""
         $('#answerDisplay').html("= " + fancy(formula))
     }
+
 
     let trigger = ""
     let pastedTrigger = false
@@ -814,28 +818,12 @@ function read(event) {
         return 1
     else if (trigger == "=") {
         length = formula.length
-        let operationPresent = false
-        for (let i = 0; i < length; i++) {
-            if (formula[i] == "e") {
-                i++
-                continue
-            }
-            if (typeId(formula[i]) == 0) {
-                if (i == 0) 
-                    continue
-                else if (i == length - 1) {
-                    operationPresent = false
-                    break
-                }
-                operationPresent = true
-            }
-        }
-        
-        if (operationPresent) {
+        let operationPresence = operationPresent(formula)
+        if (operationPresence) {
             modifiedOutput = false
             lastOperation = formula
         }
-        if (operationPresent == false && modifiedOutput == false) {
+        if (operationPresence == false && modifiedOutput == false) {
             let lastOperationLen = lastOperation.length
             let closedCount = 0
             for (let i = lastOperationLen - 1; i > 0; i--) {
@@ -858,11 +846,11 @@ function read(event) {
             if (testFormula.length > 22)
                 testFormula = formula + "\n" + lastOperation
             formula = testFormula
-            operationPresent = true
+            operationPresence = true
         }
         let preFormula
         let postFormula
-        if (operationPresent || formula[length - 1] == "%") {
+        if (operationPresence || formula[length - 1] == "%") {
             formula = calculate(parse(formula))
             preFormula = completedFormula
             postFormula = formula
