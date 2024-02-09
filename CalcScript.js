@@ -710,8 +710,9 @@ function read(event) {
                 continue
             }
             if (typeId(formula[i]) == 0 && i > 0 && i < length - 1) {
-                if (typeId(formula[i + 1]) == 1 && typeId(formula[i - 1]) == 1) 
-                    operationPresence = true 
+                if ((typeId(formula[i + 1]) == 1 || formula[i + 1] == "(") && 
+                (typeId(formula[i - 1]) == 1 || formula[i - 1] == ")"))
+                    operationPresence = true
             }  
             else if (formula[i] == "%")
                 operationPresence = true
