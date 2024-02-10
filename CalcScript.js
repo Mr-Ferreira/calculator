@@ -119,11 +119,9 @@ $(document).ready(function () {
             }
             
             trigger = triggerId(trigger)
-            if (trigger == "ERROR")
-                return
             buttonsRunning[trigger] = false
-            $("#" + trigger).click()
             animate(trigger, "up")
+            $("#" + trigger).click()
         }
         
     })
@@ -1279,7 +1277,6 @@ function calcHistory(event) {
     }
 }
 
-
 // Translates raw keyboard/mouse input events into HTML DOM Ids
 function triggerId(trigger) {
     let id = trigger
@@ -1303,8 +1300,6 @@ function triggerId(trigger) {
         id = "percent"
     else if (trigger == ".")
         id = "decimal"
-    else if (typeId(trigger) == -1 || trigger == "e")
-        return "ERROR"
     return id
 }
 
