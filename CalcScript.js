@@ -14,6 +14,7 @@ $(document).ready(function () {
 // Enables arrow key usage.
 // Deals with allowing Ctrl keybinds such as Ctrl+C and Ctrl+V
 let control = false
+let keyDown = false
 let buttonsRunning = new Object()
 $(document).ready(function () {
     $('[name="button"').each(function () {
@@ -22,6 +23,7 @@ $(document).ready(function () {
     buttonsRunning["123"] = false
 
     $(document).on("keydown", function(event) {
+        keyDown = true
         if (mouseDown == false) {
             let trigger = event.key
             let display = $('#display').html()
@@ -113,43 +115,45 @@ $(document).ready(function () {
         }
     })
     $(document).on("keyup", function(event) {
-        if (mouseDown == false) {
-            let trigger = event.key
-            if (trigger == "Control" || trigger == "Command") 
-                control = false
-            if (control == false)
-                input.focus()
+        keyDown = false
+        let trigger = event.key
+        if (trigger == "Control" || trigger == "Command") 
+            control = false
+        if (control == false)
+            input.focus()
 
-            if (trigger == "!" && buttonsRunning["1"] == true) 
-                trigger = "1"
-            else if (trigger == "@" && buttonsRunning["2"] == true)
-                trigger = "2"
-            else if (trigger == "#" && buttonsRunning["3"] == true)
-                trigger = "3"
-            else if (trigger == "$" && buttonsRunning["4"] == true)
-                trigger = "4"
-            else if (trigger == "%" && buttonsRunning["5"] == true)
-                trigger = "5"
-            else if (trigger == "^" && buttonsRunning["6"] == true)
-                trigger = "6"
-            else if (trigger == "&" && buttonsRunning["7"] == true)
-                trigger = "7"
-            else if (trigger == "*" && buttonsRunning["8"] == true)
-                trigger = "8"
-            else if (trigger == "(" && buttonsRunning["9"] == true)
-                trigger = "9"
-            else if (trigger == ")" && buttonsRunning["0"] == true)
-                trigger = "0"
-            
-            trigger = triggerId(trigger)
-            if (buttonsRunning[trigger] == undefined)
-                return
-            buttonsRunning[trigger] = false
-            if (trigger == "C" && control)
-                return
-            animate(trigger, "up")
-            $("#" + trigger).click()
-        }
+        if (trigger == "!" && buttonsRunning["1"] == true) 
+            trigger = "1"
+        else if (trigger == "@" && buttonsRunning["2"] == true)
+            trigger = "2"
+        else if (trigger == "#" && buttonsRunning["3"] == true)
+            trigger = "3"
+        else if (trigger == "$" && buttonsRunning["4"] == true)
+            trigger = "4"
+        else if (trigger == "%" && buttonsRunning["5"] == true)
+            trigger = "5"
+        else if (trigger == "^" && buttonsRunning["6"] == true)
+            trigger = "6"
+        else if (trigger == "&" && buttonsRunning["7"] == true)
+            trigger = "7"
+        else if (trigger == "*" && buttonsRunning["8"] == true)
+            trigger = "8"
+        else if (trigger == "(" && buttonsRunning["9"] == true)
+            trigger = "9"
+        else if (trigger == ")" && buttonsRunning["0"] == true)
+            trigger = "0"
+        
+        trigger = triggerId(trigger)
+        if (buttonsRunning[trigger] == undefined)
+            return
+        
+        if (trigger == "C" && control)
+            return
+        if (mouseDown)
+            return
+        buttonsRunning[trigger] = false
+        animate(trigger, "up")
+        $("#" + trigger).click() 
     })
     $(document).on("click", function() {
         control = false
@@ -774,7 +778,7 @@ function read(event) {
     else 
         trigger = event.target.innerHTML
 
-    if (buttonsRunning[triggerId(trigger)] == true) 
+    if (buttonsRunning[triggerId(trigger)] == true || keyDown) 
         return 550
     
     let triggerLen = trigger.length
@@ -1334,17 +1338,21 @@ let animationTrigger
 let mouseDown = false
 $(document).on("mousedown", function(event) {
     mouseDown = true
-    animationTrigger = event.target.id
-    if (buttonsRunning[animationTrigger] == false) {
+    if (keyDown == false){
+        animationTrigger = event.target.id
         animationTrigger = triggerId(animationTrigger)
-        animate(animationTrigger, "down")
+        if (buttonsRunning[animationTrigger] == false) 
+            animate(animationTrigger, "down")
     }
-    else
-        animationTrigger = undefined
 })
 $(document).on("mouseup", function() {
     mouseDown = false
-    animate(animationTrigger, "up")
+    if (buttonsRunning[animationTrigger] != undefined) {
+        if (keyDown) 
+            return
+        animate(animationTrigger, "up")
+    }
+        
 })
 let savedColor = new Object()
 let savedBackground = new Object()
