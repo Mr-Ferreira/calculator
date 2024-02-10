@@ -14,29 +14,24 @@ $(document).ready(function () {
 // Enables arrow key usage.
 // Deals with allowing Ctrl keybinds such as Ctrl+C and Ctrl+V
 let control = false
-function verifyKeyPress () {
-    for (const button in buttonsRunning)
-        if (buttonsRunning[button] == true)
-            return true
-}
-let buttonsRunning = new Object()
 let savedColor = new Object()
 let savedBackground = new Object()
+let keyDown = ""
 $(document).ready(function () {
     $('[name="button"').each(function () {
         let buttonId = $(this).attr('id')
         let element = $(this)[0]
-        buttonsRunning[buttonId] = false
         savedBackground[buttonId] = window.getComputedStyle(element, null).getPropertyValue("background-color")
         savedColor[buttonId] = window.getComputedStyle(element, null).getPropertyValue("color")
     })
-    buttonsRunning["123"] = false
 
     $(document).on("keydown", function(event) {
-        if (mouseDown == false) {
-            let trigger = event.key
-            let display = $('#display').html()
-            let length = display.length
+        let trigger = event.key
+        let display = $('#display').html()
+        let length = display.length
+        if (mouseDown == false && keyDown == "") {
+            keyDown = trigger
+            
             if ((trigger == "Control" || trigger == "Command") && control == false) {
                 control = true
                 input.blur()
@@ -115,17 +110,14 @@ $(document).ready(function () {
 
             if (control == false) {
                 trigger = triggerId(trigger)
-                if (buttonsRunning[trigger] == undefined)
-                    return
-                if (buttonsRunning[trigger] == false) 
-                    animate(trigger, "down")
-                buttonsRunning[trigger] = true
+                animate(trigger, "down")  
             }
         }
     })
     $(document).on("keyup", function(event) {
         let trigger = event.key
-        if (mouseDown == false) {
+        if (mouseDown == false && trigger == keyDown) {
+            keyDown = ""
             if (trigger == "Control" || trigger == "Command") 
                 control = false
             if (control == false)
@@ -153,13 +145,10 @@ $(document).ready(function () {
                 trigger = "0"
             
             trigger = triggerId(trigger)
-            if (buttonsRunning[trigger] == undefined)
-                return
             
             if (trigger == "C" && control)
                 return
             
-            buttonsRunning[trigger] = false
             animate(trigger, "up")
             read($("#" + trigger).html())
         }
@@ -787,9 +776,6 @@ function read(event) {
     else 
         trigger = event.target.innerHTML
 
-    if (buttonsRunning[triggerId(trigger)] == true) 
-        return 550
-    
     let triggerLen = trigger.length
     if (trigger == "," || trigger == "\n" || trigger == "\r" || trigger == " ")
         return 0
@@ -1354,23 +1340,21 @@ function triggerId(trigger) {
 let animationTrigger
 let mouseDown = false
 $(document).on("mousedown", function(event) {
-    if (!verifyKeyPress()){
-        mouseDown = true
-        animationTrigger = event.target.id
-        animationTrigger = triggerId(animationTrigger)
-        if (buttonsRunning[animationTrigger] == false) 
-            animate(animationTrigger, "down")
+    mouseDown = true
+    animationTrigger = event.target.id
+    animationTrigger = triggerId(animationTrigger)
+    if ($("#" + animationTrigger).attr("name") == "button") {
+        animate(animationTrigger, "down")
     }
 })
 $(document).on("mouseup", function() {
-    if (!verifyKeyPress()) {
-        mouseDown = false
-        if (buttonsRunning[animationTrigger] != undefined) {
-            animate(animationTrigger, "up")
-            if (animationTrigger != "showHistory")
-                read($("#" + animationTrigger).html())
-        }   
-    } 
+    mouseDown = false
+    if ($("#" + animationTrigger).attr("name") == "button") {
+        animate(animationTrigger, "up")
+        if (animationTrigger != "showHistory")
+            read($("#" + animationTrigger).html())
+    }
+    
 })
 function animate (Id, pressDirection) {
     let buttonDOM = $("#" + Id)[0]
