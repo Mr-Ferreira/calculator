@@ -14,16 +14,25 @@ $(document).ready(function () {
 // Enables arrow key usage.
 // Deals with allowing Ctrl keybinds such as Ctrl+C and Ctrl+V
 let control = false
-let keyDown = false
+function verifyKeyPress () {
+    for (const button in buttonsRunning)
+        if (buttonsRunning[button] == true)
+            return true
+}
 let buttonsRunning = new Object()
+let savedColor = new Object()
+let savedBackground = new Object()
 $(document).ready(function () {
     $('[name="button"').each(function () {
-        buttonsRunning[$(this).attr('id')] = false
+        let buttonId = $(this).attr('id')
+        let element = $(this)[0]
+        buttonsRunning[buttonId] = false
+        savedBackground[buttonId] = window.getComputedStyle(element, null).getPropertyValue("background-color")
+        savedColor[buttonId] = window.getComputedStyle(element, null).getPropertyValue("color")
     })
     buttonsRunning["123"] = false
 
     $(document).on("keydown", function(event) {
-        keyDown = true
         if (mouseDown == false) {
             let trigger = event.key
             let display = $('#display').html()
@@ -115,45 +124,45 @@ $(document).ready(function () {
         }
     })
     $(document).on("keyup", function(event) {
-        keyDown = false
         let trigger = event.key
-        if (trigger == "Control" || trigger == "Command") 
-            control = false
-        if (control == false)
-            input.focus()
+        if (mouseDown == false) {
+            if (trigger == "Control" || trigger == "Command") 
+                control = false
+            if (control == false)
+                input.focus()
 
-        if (trigger == "!" && buttonsRunning["1"] == true) 
-            trigger = "1"
-        else if (trigger == "@" && buttonsRunning["2"] == true)
-            trigger = "2"
-        else if (trigger == "#" && buttonsRunning["3"] == true)
-            trigger = "3"
-        else if (trigger == "$" && buttonsRunning["4"] == true)
-            trigger = "4"
-        else if (trigger == "%" && buttonsRunning["5"] == true)
-            trigger = "5"
-        else if (trigger == "^" && buttonsRunning["6"] == true)
-            trigger = "6"
-        else if (trigger == "&" && buttonsRunning["7"] == true)
-            trigger = "7"
-        else if (trigger == "*" && buttonsRunning["8"] == true)
-            trigger = "8"
-        else if (trigger == "(" && buttonsRunning["9"] == true)
-            trigger = "9"
-        else if (trigger == ")" && buttonsRunning["0"] == true)
-            trigger = "0"
-        
-        trigger = triggerId(trigger)
-        if (buttonsRunning[trigger] == undefined)
-            return
-        
-        if (trigger == "C" && control)
-            return
-        if (mouseDown)
-            return
-        buttonsRunning[trigger] = false
-        animate(trigger, "up")
-        $("#" + trigger).click() 
+            if (trigger == "!" && buttonsRunning["1"] == true) 
+                trigger = "1"
+            else if (trigger == "@" && buttonsRunning["2"] == true)
+                trigger = "2"
+            else if (trigger == "#" && buttonsRunning["3"] == true)
+                trigger = "3"
+            else if (trigger == "$" && buttonsRunning["4"] == true)
+                trigger = "4"
+            else if (trigger == "%" && buttonsRunning["5"] == true)
+                trigger = "5"
+            else if (trigger == "^" && buttonsRunning["6"] == true)
+                trigger = "6"
+            else if (trigger == "&" && buttonsRunning["7"] == true)
+                trigger = "7"
+            else if (trigger == "*" && buttonsRunning["8"] == true)
+                trigger = "8"
+            else if (trigger == "(" && buttonsRunning["9"] == true)
+                trigger = "9"
+            else if (trigger == ")" && buttonsRunning["0"] == true)
+                trigger = "0"
+            
+            trigger = triggerId(trigger)
+            if (buttonsRunning[trigger] == undefined)
+                return
+            
+            if (trigger == "C" && control)
+                return
+            
+            buttonsRunning[trigger] = false
+            animate(trigger, "up")
+            read(trigger)
+        }
     })
     $(document).on("click", function() {
         control = false
@@ -778,7 +787,7 @@ function read(event) {
     else 
         trigger = event.target.innerHTML
 
-    if (buttonsRunning[triggerId(trigger)] == true || keyDown) 
+    if (buttonsRunning[triggerId(trigger)] == true) 
         return 550
     
     let triggerLen = trigger.length
@@ -902,7 +911,8 @@ function read(event) {
                 function appendHistory (string) {
                     let text
                     let list = $("<li></li>")
-                    let button = $("<button id='histButton' type='button' onclick='buttonClick(event);calcHistory(event)'></button>")
+                    let button = $("<button id='histButton" + histCount + 
+                    "' type='button' onclick='calcHistory(event)' style='font-size: 20px;width: 100%;height: 100%;border-radius: 0%;'></button>")
                     let container = $('#listContainer')
 
                     let stringLen = string.length
@@ -919,7 +929,12 @@ function read(event) {
                     button.append(text)
                     list.append(button)
                     container.append(list)
-                    buttonsRunning[container.children().last().children().first().html()] = false
+                    let id = "histButton" + histCount
+                    let element = container.children().last().children().first()[0]
+                    buttonsRunning[id] = false
+                    savedBackground[id] = window.getComputedStyle(element, null).getPropertyValue("background-color")
+                    savedColor[id] = window.getComputedStyle(element, null).getPropertyValue("color")
+                    histCount++
                 }
                 appendHistory(fancy(preFormula))
                 appendHistory("= " + fancy(postFormula))
@@ -1280,6 +1295,7 @@ function resize() {
 }
 
 // History container button functionalities
+let histCount = 0
 function calcHistory(event) {
     let trigger = event.target.innerHTML
     if (trigger == "Hist") {
@@ -1299,6 +1315,7 @@ function calcHistory(event) {
             delete buttonsRunning[$('#listContainer').children().last().children().first().html()]
             $('#listContainer').children().last().remove()
         })
+        histCount = 0
     }  
     else {
         if (trigger[0] == "=")
@@ -1337,8 +1354,8 @@ function triggerId(trigger) {
 let animationTrigger
 let mouseDown = false
 $(document).on("mousedown", function(event) {
-    mouseDown = true
-    if (keyDown == false){
+    if (!verifyKeyPress()){
+        mouseDown = true
         animationTrigger = event.target.id
         animationTrigger = triggerId(animationTrigger)
         if (buttonsRunning[animationTrigger] == false) 
@@ -1346,37 +1363,34 @@ $(document).on("mousedown", function(event) {
     }
 })
 $(document).on("mouseup", function() {
-    mouseDown = false
-    if (buttonsRunning[animationTrigger] != undefined) {
-        if (keyDown) 
-            return
-        animate(animationTrigger, "up")
-    }
-        
+    if (!verifyKeyPress()) {
+        mouseDown = false
+        if (buttonsRunning[animationTrigger] != undefined) {
+            animate(animationTrigger, "up")
+            if (animationTrigger != "showHistory")
+                read($("#" + animationTrigger).html())
+        }   
+    } 
 })
-let savedColor = new Object()
-let savedBackground = new Object()
-function animate (event, pressDirection) {
-    let buttonDOM = $("#" + event)[0]
+function animate (Id, pressDirection) {
+    let buttonDOM = $("#" + Id)[0]
     if (buttonDOM == undefined)
         return
     if (pressDirection == "down") 
         buttonDOM.style.borderStyle = "inset"
     else {
         buttonDOM.style.borderStyle = "outset"
-        buttonDOM.style.color = savedColor[event]
-        buttonDOM.style.backgroundColor = savedBackground[event]
+        buttonDOM.style.color = savedColor[Id]
+        buttonDOM.style.backgroundColor = savedBackground[Id]
         return
     }
-
-    let backgroundColor = window.getComputedStyle(buttonDOM, null).getPropertyValue("background-color")
-    let backgroundColorLen = backgroundColor.length
+    let backgroundColorLen = savedBackground[Id].length
     let backgroundColorVal = [""]
     let backgroundColorValIndex = 0
     for (let i = 4; i < backgroundColorLen; i++) {
-        if (!isNaN(Number(backgroundColor[i]))) 
-            backgroundColorVal[backgroundColorValIndex] = backgroundColorVal[backgroundColorValIndex] + backgroundColor[i]
-        else if (backgroundColor[i] == ",") {
+        if (!isNaN(Number(savedBackground[Id][i]))) 
+            backgroundColorVal[backgroundColorValIndex] = backgroundColorVal[backgroundColorValIndex] + savedBackground[Id][i]
+        else if (savedBackground[Id][i] == ",") {
             backgroundColorValIndex++
             backgroundColorVal.push("")
         }
@@ -1384,27 +1398,20 @@ function animate (event, pressDirection) {
     for (let i = 0; i < 3; i++) 
         backgroundColorVal[i] = Number(backgroundColorVal[i]) - 100
         
-
-    let color = window.getComputedStyle(buttonDOM, null).getPropertyValue("color")
-    let colorLen = color.length
+    let colorLen = savedColor[Id].length
     let colorVal = [""]
     let colorValIndex = 0
     for (let i = 4; i < colorLen; i++) {
-        if (!isNaN(Number(color[i]))) 
-            colorVal[colorValIndex] = colorVal[colorValIndex] + color[i]
-        else if (color[i] == ",") {
+        if (!isNaN(Number(savedColor[Id][i]))) 
+            colorVal[colorValIndex] = colorVal[colorValIndex] + savedColor[Id][i]
+        else if (savedColor[Id][i] == ",") {
             colorValIndex++
             colorVal.push("")
         }
     }
     for (let i = 0; i < 3; i++) 
         colorVal[i] = Number(colorVal[i]) - 100
-    
-    if (pressDirection == "down") {
-        savedBackground[event] = backgroundColor
-        savedColor[event] = color
-    }
-            
+
     buttonDOM.style.color = "rgb(" + colorVal[0] + "," + colorVal[1] + "," + colorVal[2] + ")"
     buttonDOM.style.backgroundColor = "rgb(" + backgroundColorVal[0] + "," + backgroundColorVal[1] + "," + backgroundColorVal[2] + ")"
 }

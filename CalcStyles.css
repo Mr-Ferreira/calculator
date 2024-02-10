@@ -165,12 +165,6 @@ li {
     border-radius: 1%;
     padding: 5px;
 }
-#histButton {
-    font-size: 20px;
-    width: 100%;
-    height: 100%;
-    border-radius: 0%;
-}
 textarea:focus {
     outline: none;
 }
