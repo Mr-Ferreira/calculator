@@ -1283,28 +1283,30 @@ function resize() {
 let histCount = 0
 function calcHistory(event) {
     let trigger = event.target.innerHTML
-    if (trigger == "Hist") {
-        $('#histContainer')[0].style.display = "block"
-        let histList = $('#listContainer')[0]
-        histList.scrollTop = histList.scrollHeight
-        $('#numPad')[0].style.display = "none"
-        $('#showHistory').html("123")
-    }
-    else if (trigger == "123") {
-        $('#histContainer')[0].style.display = "none"
-        $('#numPad')[0].style.display = "block"
-        $('#showHistory').html("Hist")
-    }
-    else if (trigger == "Clear") {
-        $('#listContainer').children().each(function () {
-            $('#listContainer').children().last().remove()
-        })
-        histCount = 0
-    }  
-    else {
-        if (trigger[0] == "=")
-            trigger = trigger.slice(1)
-        read(trigger)
+    if (keyDown == "") {
+        if (trigger == "Hist") {
+            $('#histContainer')[0].style.display = "block"
+            let histList = $('#listContainer')[0]
+            histList.scrollTop = histList.scrollHeight
+            $('#numPad')[0].style.display = "none"
+            $('#showHistory').html("123")
+        }
+        else if (trigger == "123") {
+            $('#histContainer')[0].style.display = "none"
+            $('#numPad')[0].style.display = "block"
+            $('#showHistory').html("Hist")
+        }
+        else if (trigger == "Clear") {
+            $('#listContainer').children().each(function () {
+                $('#listContainer').children().last().remove()
+            })
+            histCount = 0
+        }  
+        else {
+            if (trigger[0] == "=")
+                trigger = trigger.slice(1)
+            read(trigger)
+        }
     }
 }
 
@@ -1341,15 +1343,15 @@ $(document).on("mousedown", function(event) {
     mouseDown = true
     animationTrigger = event.target.id
     animationTrigger = triggerId(animationTrigger)
-    if ($("#" + animationTrigger).attr("name") == "button") {
+    if ($("#" + animationTrigger).attr("name") == "button" && keyDown == "") {
         animate(animationTrigger, "down")
     }
 })
 $(document).on("mouseup", function() {
     mouseDown = false
-    if ($("#" + animationTrigger).attr("name") == "button") {
+    if ($("#" + animationTrigger).attr("name") == "button" && keyDown == "") {
         animate(animationTrigger, "up")
-        if (animationTrigger != "showHistory" && animationTrigger.slice(0, animationTrigger.length -1 ) != "histButton" && keyDown == "")
+        if (animationTrigger != "showHistory" && animationTrigger.slice(0, animationTrigger.length -1 ) != "histButton")
             read($("#" + animationTrigger).html())
     }  
 })
