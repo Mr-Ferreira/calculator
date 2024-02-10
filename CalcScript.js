@@ -161,7 +161,7 @@ $(document).ready(function () {
             
             buttonsRunning[trigger] = false
             animate(trigger, "up")
-            read(trigger)
+            read($("#" + trigger).html())
         }
     })
     $(document).on("click", function() {
