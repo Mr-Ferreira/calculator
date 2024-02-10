@@ -1351,7 +1351,7 @@ $(document).on("mouseup", function() {
     mouseDown = false
     if ($("#" + animationTrigger).attr("name") == "button") {
         animate(animationTrigger, "up")
-        if (animationTrigger != "showHistory")
+        if (animationTrigger != "showHistory" && keyDown == "")
             read($("#" + animationTrigger).html())
     }
     
