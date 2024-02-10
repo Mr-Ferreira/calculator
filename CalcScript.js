@@ -30,8 +30,6 @@ $(document).ready(function () {
         let display = $('#display').html()
         let length = display.length
         if (mouseDown == false && keyDown == "") {
-            keyDown = trigger
-            
             if ((trigger == "Control" || trigger == "Command") && control == false) {
                 control = true
                 input.blur()
@@ -107,7 +105,12 @@ $(document).ready(function () {
                 input.setSelectionRange(loc, endloc)
                 return
             }
+            else if (trigger == "Shift") {
+                keyDown = ""
+                return
+            }
 
+            keyDown = trigger
             if (control == false) {
                 trigger = triggerId(trigger)
                 animate(trigger, "down")  
@@ -122,27 +125,6 @@ $(document).ready(function () {
                 control = false
             if (control == false)
                 input.focus()
-
-            if (trigger == "!" && buttonsRunning["1"] == true) 
-                trigger = "1"
-            else if (trigger == "@" && buttonsRunning["2"] == true)
-                trigger = "2"
-            else if (trigger == "#" && buttonsRunning["3"] == true)
-                trigger = "3"
-            else if (trigger == "$" && buttonsRunning["4"] == true)
-                trigger = "4"
-            else if (trigger == "%" && buttonsRunning["5"] == true)
-                trigger = "5"
-            else if (trigger == "^" && buttonsRunning["6"] == true)
-                trigger = "6"
-            else if (trigger == "&" && buttonsRunning["7"] == true)
-                trigger = "7"
-            else if (trigger == "*" && buttonsRunning["8"] == true)
-                trigger = "8"
-            else if (trigger == "(" && buttonsRunning["9"] == true)
-                trigger = "9"
-            else if (trigger == ")" && buttonsRunning["0"] == true)
-                trigger = "0"
             
             trigger = triggerId(trigger)
             
