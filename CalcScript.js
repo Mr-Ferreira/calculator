@@ -33,10 +33,12 @@ $(document).ready(function () {
             else if ((trigger == "c" || trigger == "x") && control == true) 
                 navigator.clipboard.writeText(display.slice(loc, endloc))
 
-            trigger = triggerId(trigger)
-            if (buttonsRunning[trigger] == false) 
-                animate(trigger, "down")
-            buttonsRunning[trigger] = true
+            if (control == false) {
+                trigger = triggerId(trigger)
+                if (buttonsRunning[trigger] == false) 
+                    animate(trigger, "down")
+                buttonsRunning[trigger] = true
+            }
         }
     })
     $(document).on("keyup", function(event) {
@@ -120,10 +122,11 @@ $(document).ready(function () {
             
             trigger = triggerId(trigger)
             buttonsRunning[trigger] = false
+            if (trigger == "C" && control)
+                return
             animate(trigger, "up")
             $("#" + trigger).click()
         }
-        
     })
     $(document).on("click", function() {
         control = false
