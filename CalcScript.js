@@ -25,33 +25,15 @@ $(document).ready(function () {
         if (mouseDown == false) {
             let trigger = event.key
             let display = $('#display').html()
+            let length = display.length
             if ((trigger == "Control" || trigger == "Command") && control == false) {
                 control = true
                 input.blur()
                 return
-            } 
+            }
             else if ((trigger == "c" || trigger == "x") && control == true) 
                 navigator.clipboard.writeText(display.slice(loc, endloc))
-
-            if (control == false) {
-                trigger = triggerId(trigger)
-                if (buttonsRunning[trigger] == false) 
-                    animate(trigger, "down")
-                buttonsRunning[trigger] = true
-            }
-        }
-    })
-    $(document).on("keyup", function(event) {
-        if (mouseDown == false) {
-            let trigger = event.key
-            let display = $('#display').html()
-            let length = display.length
-            if (trigger == "Control" || trigger == "Command") 
-                control = false
-            if (control == false)
-                input.focus()
-
-            if (trigger == "ArrowLeft" || trigger== "ArrowRight"){
+            else if (trigger == "ArrowLeft" || trigger== "ArrowRight"){
                 if (trigger == "ArrowLeft" && endloc > 0)
                     endloc--
                 else if (trigger == "ArrowRight" && endloc < length)
@@ -119,8 +101,49 @@ $(document).ready(function () {
                 input.setSelectionRange(loc, endloc)
                 return
             }
+
+            if (control == false) {
+                trigger = triggerId(trigger)
+                if (buttonsRunning[trigger] == undefined)
+                    return
+                if (buttonsRunning[trigger] == false) 
+                    animate(trigger, "down")
+                buttonsRunning[trigger] = true
+            }
+        }
+    })
+    $(document).on("keyup", function(event) {
+        if (mouseDown == false) {
+            let trigger = event.key
+            if (trigger == "Control" || trigger == "Command") 
+                control = false
+            if (control == false)
+                input.focus()
+
+            if (trigger == "!" && buttonsRunning["1"] == true) 
+                trigger = "1"
+            else if (trigger == "@" && buttonsRunning["2"] == true)
+                trigger = "2"
+            else if (trigger == "#" && buttonsRunning["3"] == true)
+                trigger = "3"
+            else if (trigger == "$" && buttonsRunning["4"] == true)
+                trigger = "4"
+            else if (trigger == "%" && buttonsRunning["5"] == true)
+                trigger = "5"
+            else if (trigger == "^" && buttonsRunning["6"] == true)
+                trigger = "6"
+            else if (trigger == "&" && buttonsRunning["7"] == true)
+                trigger = "7"
+            else if (trigger == "*" && buttonsRunning["8"] == true)
+                trigger = "8"
+            else if (trigger == "(" && buttonsRunning["9"] == true)
+                trigger = "9"
+            else if (trigger == ")" && buttonsRunning["0"] == true)
+                trigger = "0"
             
             trigger = triggerId(trigger)
+            if (buttonsRunning[trigger] == undefined)
+                return
             buttonsRunning[trigger] = false
             if (trigger == "C" && control)
                 return
@@ -1311,7 +1334,7 @@ let animationTrigger
 let mouseDown = false
 $(document).on("mousedown", function(event) {
     mouseDown = true
-    animationTrigger = event.target.innerHTML
+    animationTrigger = event.target.id
     if (buttonsRunning[animationTrigger] == false) {
         animationTrigger = triggerId(animationTrigger)
         animate(animationTrigger, "down")
