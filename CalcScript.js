@@ -897,7 +897,7 @@ function read(event) {
                 function appendHistory (string) {
                     let text
                     let list = $("<li></li>")
-                    let button = $("<button id='histButton" + histCount + 
+                    let button = $("<button name='button' id='histButton" + histCount + 
                     "' type='button' onclick='calcHistory(event)' style='font-size: 20px;width: 100%;height: 100%;border-radius: 0%;'></button>")
                     let container = $('#listContainer')
 
@@ -917,7 +917,6 @@ function read(event) {
                     container.append(list)
                     let id = "histButton" + histCount
                     let element = container.children().last().children().first()[0]
-                    buttonsRunning[id] = false
                     savedBackground[id] = window.getComputedStyle(element, null).getPropertyValue("background-color")
                     savedColor[id] = window.getComputedStyle(element, null).getPropertyValue("color")
                     histCount++
@@ -1298,7 +1297,6 @@ function calcHistory(event) {
     }
     else if (trigger == "Clear") {
         $('#listContainer').children().each(function () {
-            delete buttonsRunning[$('#listContainer').children().last().children().first().html()]
             $('#listContainer').children().last().remove()
         })
         histCount = 0
@@ -1351,10 +1349,9 @@ $(document).on("mouseup", function() {
     mouseDown = false
     if ($("#" + animationTrigger).attr("name") == "button") {
         animate(animationTrigger, "up")
-        if (animationTrigger != "showHistory" && keyDown == "")
+        if (animationTrigger != "showHistory" && animationTrigger.slice(0, animationTrigger.length -1 ) != "histButton" && keyDown == "")
             read($("#" + animationTrigger).html())
-    }
-    
+    }  
 })
 function animate (Id, pressDirection) {
     let buttonDOM = $("#" + Id)[0]
