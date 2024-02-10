@@ -14,12 +14,41 @@ $(document).ready(function () {
 // Enables arrow key usage.
 // Deals with allowing Ctrl keybinds such as Ctrl+C and Ctrl+V
 let control = false
+let buttonsRunning = new Object()
 $(document).ready(function () {
+    $('[name="button"').each(function () {
+        buttonsRunning[$(this).attr('id')] = false
+    })
+    buttonsRunning["123"] = false
+
     $(document).on("keydown", function(event) {
-        let trigger = event.key
-        let display = $('#display').html()
-        let length = display.length
-        if (control == false) {
+        if (mouseDown == false) {
+            let trigger = event.key
+            let display = $('#display').html()
+            if ((trigger == "Control" || trigger == "Command") && control == false) {
+                control = true
+                input.blur()
+                return
+            } 
+            else if ((trigger == "c" || trigger == "x") && control == true) 
+                navigator.clipboard.writeText(display.slice(loc, endloc))
+
+            trigger = triggerId(trigger)
+            if (buttonsRunning[trigger] == false) 
+                animate(trigger, "down")
+            buttonsRunning[trigger] = true
+        }
+    })
+    $(document).on("keyup", function(event) {
+        if (mouseDown == false) {
+            let trigger = event.key
+            let display = $('#display').html()
+            let length = display.length
+            if (trigger == "Control" || trigger == "Command") 
+                control = false
+            if (control == false)
+                input.focus()
+
             if (trigger == "ArrowLeft" || trigger== "ArrowRight"){
                 if (trigger == "ArrowLeft" && endloc > 0)
                     endloc--
@@ -41,7 +70,7 @@ $(document).ready(function () {
                     else
                         break
                 }
-    
+
                 if (trigger == "ArrowUp") {
                     let savedLoc = endloc - 1
                     if (savedLoc > 0) {
@@ -83,49 +112,20 @@ $(document).ready(function () {
                 
                 if (endloc != length)
                     cursorPresent = true
-    
+
                 loc = endloc
                 input.setSelectionRange(loc, endloc)
                 return
             }
-            else if (trigger == "Control" || trigger == "Command") {
-                control = true
-                input.blur()
+            
+            trigger = triggerId(trigger)
+            if (trigger == "ERROR")
                 return
-            } 
-            else if (trigger == "(" || trigger == ")")
-                trigger = "parentheses"
-            else if (trigger == "*" || trigger == "x")
-                trigger = "multiply"
-            else if ((trigger == "c" || trigger == "C"))
-                trigger = "C"
-            else if (trigger == "Enter" || trigger == "=")
-                trigger = "equals"
-            else if (trigger == "Backspace")
-                trigger = "backspace"
-            else if (trigger == "+")
-                trigger = "add"
-            else if (trigger == "-")
-                trigger = "subtract"
-            else if (trigger == "/")
-                trigger = "divide"
-            else if (trigger == "%")
-                trigger = "percent"
-            else if (trigger == ".")
-                trigger = "decimal"
-            else if (typeId(trigger) == -1 || trigger == "e")
-                return
+            buttonsRunning[trigger] = false
             $("#" + trigger).click()
+            animate(trigger, "up")
         }
-        else if (trigger == "c" || trigger == "x") 
-            navigator.clipboard.writeText(display.slice(loc, endloc))
-    })
-    $(document).on("keyup", function(event) {
-        let trigger = event.key
-        if (trigger == "Control" || trigger == "Command") 
-            control = false
-        if (control == false)
-            input.focus()
+        
     })
     $(document).on("click", function() {
         control = false
@@ -743,7 +743,6 @@ function read(event) {
         $('#answerDisplay').html("= " + fancy(formula))
     }
 
-
     let trigger = ""
     let pastedTrigger = false
     if (event.target == undefined) 
@@ -751,6 +750,9 @@ function read(event) {
     else 
         trigger = event.target.innerHTML
 
+    if (buttonsRunning[triggerId(trigger)] == true) 
+        return 550
+    
     let triggerLen = trigger.length
     if (trigger == "," || trigger == "\n" || trigger == "\r" || trigger == " ")
         return 0
@@ -1277,67 +1279,105 @@ function calcHistory(event) {
     }
 }
 
-// Animates buttons when clicked
-let buttonsRunning = new Object()
-$(document).ready(function () {
-    $('[name="button"').each(function () {
-        buttonsRunning[$(this).html()] = false
-    })
-    buttonsRunning["123"] = false
-})
-function buttonClick(event) {
-    let trigger = event.target.innerHTML
-    let backgroundColor
-    let color
-    if (buttonsRunning[trigger] == false) {
-        buttonsRunning[trigger] = true
 
-        backgroundColor = window.getComputedStyle(event.target , null).getPropertyValue("background-color")
-        let backgroundColorLen = backgroundColor.length
-        let backgroundColorVal = [""]
-        let backgroundColorValIndex = 0
-        for (let i = 4; i < backgroundColorLen; i++) {
-            if (!isNaN(Number(backgroundColor[i]))) 
-                backgroundColorVal[backgroundColorValIndex] = backgroundColorVal[backgroundColorValIndex] + backgroundColor[i]
-            else if (backgroundColor[i] == ",") {
-                backgroundColorValIndex++
-                backgroundColorVal.push("")
-            }
-        }
-        for (let i = 0; i < 3; i++)  {
-            backgroundColorVal[i] = backgroundColorVal[i] - 100
-            if (backgroundColorVal[i] < 0)
-                backgroundColorVal[i] = 0
-        }
+// Translates raw keyboard/mouse input events into HTML DOM Ids
+function triggerId(trigger) {
+    let id = trigger
+    if (trigger == "(" || trigger == ")")
+        id = "parentheses"
+    else if (trigger == "*" || trigger == "x" || trigger == "×")
+        id = "multiply"
+    else if (trigger == "c" || trigger == "C")
+        id = "C"
+    else if (trigger == "Enter" || trigger == "=")
+        id = "equals"
+    else if (trigger == "Backspace")
+        id = "backspace"
+    else if (trigger == "+")
+        id = "add"
+    else if (trigger == "-")
+        id = "subtract"
+    else if (trigger == "/" || trigger == "÷")
+        id = "divide"
+    else if (trigger == "%")
+        id = "percent"
+    else if (trigger == ".")
+        id = "decimal"
+    else if (typeId(trigger) == -1 || trigger == "e")
+        return "ERROR"
+    return id
+}
 
-        color = window.getComputedStyle(event.target , null).getPropertyValue("color")
-        let colorLen = color.length
-        let colorVal = [""]
-        let colorValIndex = 0
-        for (let i = 4; i < colorLen; i++) {
-            if (!isNaN(Number(color[i]))) 
-                colorVal[colorValIndex] = colorVal[colorValIndex] + color[i]
-            else if (color[i] == ",") {
-                colorValIndex++
-                colorVal.push("")
-            }
-        }
-        for (let i = 0; i < 3; i++)  {
-            colorVal[i] = colorVal[i] - 100
-            if (colorVal[i] < 0)
-                colorVal[i] = 0
-        }
-        
-        event.target.style.color = "rgb(" + colorVal[0] + "," + colorVal[1] + "," + colorVal[2] + ")"
-        event.target.style.backgroundColor = "rgb(" + backgroundColorVal[0] + "," + backgroundColorVal[1] + "," + backgroundColorVal[2] + ")"
-        event.target.style.borderStyle = "inset"
-        setTimeout(() => {
-            event.target.style.backgroundColor = backgroundColor
-            event.target.style.color = color
-            event.target.style.borderStyle = "outset"
-            buttonsRunning[trigger] = false
-        }, 150)
+// Animates buttons when pressed/clicked.
+let animationTrigger
+let mouseDown = false
+$(document).on("mousedown", function(event) {
+    mouseDown = true
+    animationTrigger = event.target.innerHTML
+    if (buttonsRunning[animationTrigger] == false) {
+        animationTrigger = triggerId(animationTrigger)
+        animate(animationTrigger, "down")
     }
+    else
+        animationTrigger = undefined
+})
+$(document).on("mouseup", function() {
+    mouseDown = false
+    animate(animationTrigger, "up")
+})
+let savedColor = new Object()
+let savedBackground = new Object()
+function animate (event, pressDirection) {
+    let buttonDOM = $("#" + event)[0]
+    if (buttonDOM == undefined)
+        return
+    if (pressDirection == "down") 
+        buttonDOM.style.borderStyle = "inset"
+    else {
+        buttonDOM.style.borderStyle = "outset"
+        buttonDOM.style.color = savedColor[event]
+        buttonDOM.style.backgroundColor = savedBackground[event]
+        return
+    }
+
+    let backgroundColor = window.getComputedStyle(buttonDOM, null).getPropertyValue("background-color")
+    let backgroundColorLen = backgroundColor.length
+    let backgroundColorVal = [""]
+    let backgroundColorValIndex = 0
+    for (let i = 4; i < backgroundColorLen; i++) {
+        if (!isNaN(Number(backgroundColor[i]))) 
+            backgroundColorVal[backgroundColorValIndex] = backgroundColorVal[backgroundColorValIndex] + backgroundColor[i]
+        else if (backgroundColor[i] == ",") {
+            backgroundColorValIndex++
+            backgroundColorVal.push("")
+        }
+    }
+    for (let i = 0; i < 3; i++) 
+        backgroundColorVal[i] = Number(backgroundColorVal[i]) - 100
+        
+
+    let color = window.getComputedStyle(buttonDOM, null).getPropertyValue("color")
+    let colorLen = color.length
+    let colorVal = [""]
+    let colorValIndex = 0
+    for (let i = 4; i < colorLen; i++) {
+        if (!isNaN(Number(color[i]))) 
+            colorVal[colorValIndex] = colorVal[colorValIndex] + color[i]
+        else if (color[i] == ",") {
+            colorValIndex++
+            colorVal.push("")
+        }
+    }
+    for (let i = 0; i < 3; i++) 
+        colorVal[i] = Number(colorVal[i]) - 100
+    
+    if (pressDirection == "down") {
+        savedBackground[event] = backgroundColor
+        savedColor[event] = color
+    }
+            
+    buttonDOM.style.color = "rgb(" + colorVal[0] + "," + colorVal[1] + "," + colorVal[2] + ")"
+    buttonDOM.style.backgroundColor = "rgb(" + backgroundColorVal[0] + "," + backgroundColorVal[1] + "," + backgroundColorVal[2] + ")"
 }
 
 // Returns 0 if value is a mathematical operator, 1 if it's a number/numeric syntax, 2 if it's paranthesis, 3 if it's misc syntax, and -1 if it's neither.
