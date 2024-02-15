@@ -29,15 +29,16 @@ $(document).ready(function () {
         let trigger = event.key
         let display = $('#display').html()
         let length = display.length
+
+        if ((trigger == "Control" || trigger == "Command") && control == false) {
+            control = true
+            input.blur()
+            return
+        }
         if (mouseDown == false && keyDown == "") {
-            if ((trigger == "Control" || trigger == "Command") && control == false) {
-                control = true
-                input.blur()
-                return
-            }
-            else if ((trigger == "c" || trigger == "x") && control == true) 
+            if ((trigger == "c" || trigger == "x") && control == true) 
                 navigator.clipboard.writeText(display.slice(loc, endloc))
-            else if (trigger == "ArrowLeft" || trigger== "ArrowRight"){
+            else if (trigger == "ArrowLeft" || trigger== "ArrowRight") {
                 if (trigger == "ArrowLeft" && endloc > 0)
                     endloc--
                 else if (trigger == "ArrowRight" && endloc < length)
@@ -119,18 +120,25 @@ $(document).ready(function () {
     })
     $(document).on("keyup", function(event) {
         let trigger = event.key
+        if (trigger == "Control" || trigger == "Command") {
+            setTimeout(() => {
+                control = false
+                input.focus()
+            }, 100)
+        }
+            
         if (mouseDown == false && trigger == keyDown) {
             keyDown = ""
-            if (trigger == "Control" || trigger == "Command") 
-                control = false
-            if (control == false)
-                input.focus()
-            
+
             trigger = triggerId(trigger)
+
+            if (trigger == "ERROR")
+                return
             
             if (trigger == "C" && control)
                 return
             
+
             animate(trigger, "up")
             read($("#" + trigger).html())
         }
@@ -1315,6 +1323,8 @@ function triggerId(trigger) {
         id = "percent"
     else if (trigger == ".")
         id = "decimal"
+    else if (isNaN(Number(trigger)))
+        id = "ERROR"
     return id
 }
 
