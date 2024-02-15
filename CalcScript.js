@@ -1303,25 +1303,25 @@ function calcHistory(event) {
 // Translates raw keyboard/mouse input events into HTML DOM Ids
 function triggerId(trigger) {
     let id = trigger
-    if (trigger == "(" || trigger == ")")
+    if (trigger == "(" || trigger == ")" || trigger == "parentheses")
         id = "parentheses"
-    else if (trigger == "*" || trigger == "x" || trigger == "×")
+    else if (trigger == "*" || trigger == "x" || trigger == "×" || trigger == "multiply")
         id = "multiply"
     else if (trigger == "c" || trigger == "C")
         id = "C"
-    else if (trigger == "Enter" || trigger == "=")
+    else if (trigger == "Enter" || trigger == "=" || trigger == "equals")
         id = "equals"
-    else if (trigger == "Backspace")
+    else if (trigger == "Backspace" || trigger == "backspace")
         id = "backspace"
-    else if (trigger == "+")
+    else if (trigger == "+" || trigger == "add")
         id = "add"
-    else if (trigger == "-")
+    else if (trigger == "-" || trigger == "subtract")
         id = "subtract"
-    else if (trigger == "/" || trigger == "÷")
+    else if (trigger == "/" || trigger == "÷" || trigger == "divide")
         id = "divide"
-    else if (trigger == "%")
+    else if (trigger == "%" || trigger == "percent")
         id = "percent"
-    else if (trigger == ".")
+    else if (trigger == "." || trigger == "decimal")
         id = "decimal"
     else if (isNaN(Number(trigger)))
         id = "ERROR"
