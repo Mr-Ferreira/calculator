@@ -148,6 +148,7 @@ $(document).ready(function () {
         input.focus()
     })
     $(document).on("paste", function(event) {
+        keyDown = ""
         read(event.originalEvent.clipboardData.getData("text/plain"))
     })
     $(document).on("cut", function() {
@@ -780,11 +781,19 @@ function read(event) {
             if (trigger[i] == "," || trigger[i] == "\n" || formula[i] == "\r" || 
             trigger[i] == " " || trigger[i] == "<" || trigger[i] == "b" || trigger[i] == "r" || trigger[i] == ">")
                 continue
+            else if (trigger[i] == "‑")
+                nonfancyTrigger = nonfancyTrigger + "-"
+            else if (trigger[i] == "x" || trigger[i] == "*")
+                nonfancyTrigger = nonfancyTrigger + "×"
+            else if (trigger[i] == "/")
+                nonfancyTrigger = nonfancyTrigger + "÷"
             else
                 nonfancyTrigger = nonfancyTrigger + trigger[i]
         }
         trigger = nonfancyTrigger
     }
+    else if (trigger == "")
+        return
     
     formula = $('#display').html()
     let length = formula.length
@@ -944,6 +953,8 @@ function read(event) {
             recursionRun = true
             let run
             if (i < potentialFormulaLen - 1) {
+                let test1 = potentialFormula[i]
+                let test2 = potentialFormula[i + 1]
                 if (potentialFormula[i] == "e" && (potentialFormula[i + 1] == "+" || potentialFormula[i + 1] == "-")) {
                     $('#display').html($('#display').html() + potentialFormula[i] + potentialFormula[i + 1])
                     i++
