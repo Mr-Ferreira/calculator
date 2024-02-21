@@ -1378,7 +1378,7 @@ $(document).on("pointerup", function() {
         }
     }
 })
-$(document).on("pointermove", function() {
+$(document).on("pointercancel", function() {
     if (mouseDown)
         $("#" + animationTrigger).trigger("pointerup")
 })
