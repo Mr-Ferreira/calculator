@@ -1360,20 +1360,24 @@ let animationTrigger
 let mouseDown = false
 let fingerDown = ""
 $(document).on("pointerdown", function(event) {
-    let id = triggerId(event.target.id)
-    if (keyDown == "") {
+    if (keyDown == "" && fingerDown == "") {
         mouseDown = true
-        animationTrigger = id
+        let id = triggerId(event.target.id)
+        animationTrigger = fingerDown = id
         if ($("#" + animationTrigger).attr("name") == "button") 
             animate(animationTrigger, "down")
     }
 })
-$(document).on("pointerup", function() {
+$(document).on("pointerup", function(event) {
     if (keyDown == "" && mouseDown) {
         mouseDown = false
+        let id = triggerId(event.target.id)
+        if (id != fingerDown) 
+            return
+        fingerDown = ""
         if ($("#" + animationTrigger).attr("name") == "button") {
             animate(animationTrigger, "up")
-            if (animationTrigger != "showHistory" && animationTrigger.slice(0, animationTrigger.length -1 ) != "histButton")
+            if (animationTrigger != "showHistory" && animationTrigger.slice(0, animationTrigger.length - 1) != "histButton")
                 read($("#" + animationTrigger).html())
         }
     }
