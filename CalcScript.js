@@ -1372,8 +1372,11 @@ $(document).on("pointerup", function(event) {
     if (keyDown == "" && mouseDown) {
         mouseDown = false
         let id = triggerId(event.target.id)
-        if (id != fingerDown) 
+        if (id != fingerDown) {
+            animate(animationTrigger, "up")
+            fingerDown = ""
             return
+        }
         fingerDown = ""
         if ($("#" + animationTrigger).attr("name") == "button") {
             animate(animationTrigger, "up")
