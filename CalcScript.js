@@ -27,15 +27,15 @@ $(document).ready(function () {
 
     $(document).on("keydown", function(event) {
         let trigger = event.key
-        let display = $('#display').html()
-        let length = display.length
-
+    
         if ((trigger == "Control" || trigger == "Command") && control == false) {
             control = true
             input.blur()
             return
         }
         if (mouseDown == false && keyDown == "") {
+            let display = $('#display').html()
+            let length = display.length
             if ((trigger == "c" || trigger == "x") && control == true) 
                 navigator.clipboard.writeText(display.slice(loc, endloc))
             else if (trigger == "ArrowLeft" || trigger== "ArrowRight") {
@@ -130,17 +130,23 @@ $(document).ready(function () {
         if (mouseDown == false && trigger == keyDown) {
             keyDown = ""
 
-            trigger = triggerId(trigger)
+            let id = triggerId(trigger)
 
-            if (trigger == "ERROR")
+            if (id == "ERROR")
                 return
             
-            if (trigger == "C" && control)
-                return
-            
+            if (id == "C" && control)
+                return 
 
-            animate(trigger, "up")
-            read($("#" + trigger).html())
+            animate(id, "up")
+            if (id == "showHistory") {
+                if ($("#" + id).html() == "123")
+                    calcHistory("123")
+                else
+                    calcHistory("Hist")
+                return
+            }
+            read($("#" + id).html())
         }
     })
     $(document).on("click", function() {
@@ -1283,7 +1289,11 @@ function resize() {
 // History container button functionalities
 let histCount = 0
 function calcHistory(event) {
-    let trigger = event.target.innerHTML
+    let trigger
+    if (event.target == undefined) 
+        trigger = event
+    else 
+        trigger = event.target.innerHTML
     if (keyDown == "") {
         if (trigger == "Hist") {
             $('#histContainer')[0].style.display = "block"
@@ -1334,6 +1344,12 @@ function triggerId(trigger) {
         id = "percent"
     else if (trigger == "." || trigger == "decimal")
         id = "decimal"
+    else if (trigger == "123" || trigger == "Hist" || trigger == "showHistory" || trigger == "h" || trigger == "H")
+        id = "showHistory"
+    else if (trigger == "Clear" || trigger == "clearHistory")
+        id = "clearHistory"
+    else if (trigger.slice(0, 10) == "histButton")
+        id = trigger
     else if (isNaN(Number(trigger)))
         id = "ERROR"
     return id
@@ -1343,20 +1359,20 @@ function triggerId(trigger) {
 let animationTrigger
 let mouseDown = false
 $(document).on("mousedown", function(event) {
-    mouseDown = true
     animationTrigger = event.target.id
     animationTrigger = triggerId(animationTrigger)
     if ($("#" + animationTrigger).attr("name") == "button" && keyDown == "") {
+        mouseDown = true
         animate(animationTrigger, "down")
     }
 })
 $(document).on("mouseup", function() {
-    mouseDown = false
     if ($("#" + animationTrigger).attr("name") == "button" && keyDown == "") {
+        mouseDown = false
         animate(animationTrigger, "up")
         if (animationTrigger != "showHistory" && animationTrigger.slice(0, animationTrigger.length -1 ) != "histButton")
             read($("#" + animationTrigger).html())
-    }  
+    }
 })
 function animate (Id, pressDirection) {
     let buttonDOM = $("#" + Id)[0]
