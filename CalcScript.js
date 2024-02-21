@@ -1387,6 +1387,7 @@ $(document).on("pointerup", function(event) {
 })
 $(document).on("pointercancel", function() {
     if (mouseDown) {
+        mouseDown = false
         animate(animationTrigger, "up")
         fingerDown = ""
     }
