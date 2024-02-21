@@ -1359,11 +1359,12 @@ function triggerId(trigger) {
 let animationTrigger
 let mouseDown = false
 $(document).on("pointerdown", function(event) {
-    animationTrigger = event.target.id
-    animationTrigger = triggerId(animationTrigger)
-    if ($("#" + animationTrigger).attr("name") == "button" && keyDown == "") {
+    if (keyDown == "") {
         mouseDown = true
-        animate(animationTrigger, "down")
+        animationTrigger = event.target.id
+        animationTrigger = triggerId(animationTrigger)
+        if ($("#" + animationTrigger).attr("name") == "button") 
+            animate(animationTrigger, "down")
     }
 })
 $(document).on("pointerup", function() {

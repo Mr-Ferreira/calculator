@@ -1,7 +1,20 @@
+input,
+textarea,
+button,
+select,
+a {
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
+}
+a:focus,a:visited,a:active{
+  outline: none;
+}
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
 body {
     background-color: rgb(100, 100, 100);
     caret-color: transparent;
-    -webkit-tap-highlight-color:  rgba(255, 255, 255, 0); 
 }
 button {
     background-color: rgb(255, 255, 255);
