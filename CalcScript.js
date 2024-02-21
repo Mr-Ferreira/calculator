@@ -1358,23 +1358,29 @@ function triggerId(trigger) {
 // Animates buttons when pressed/clicked.
 let animationTrigger
 let mouseDown = false
+let fingerDown = ""
 $(document).on("pointerdown", function(event) {
+    let id = triggerId(event.target.id)
     if (keyDown == "") {
         mouseDown = true
-        animationTrigger = event.target.id
-        animationTrigger = triggerId(animationTrigger)
+        animationTrigger = id
         if ($("#" + animationTrigger).attr("name") == "button") 
             animate(animationTrigger, "down")
     }
 })
 $(document).on("pointerup", function() {
-    if ($("#" + animationTrigger).attr("name") == "button" && keyDown == "") {
+    if (keyDown == "" && mouseDown) {
         mouseDown = false
-        animate(animationTrigger, "up")
-        if (animationTrigger != "showHistory" && animationTrigger.slice(0, animationTrigger.length -1 ) != "histButton")
-            read($("#" + animationTrigger).html())
-        input.focus()
+        if ($("#" + animationTrigger).attr("name") == "button") {
+            animate(animationTrigger, "up")
+            if (animationTrigger != "showHistory" && animationTrigger.slice(0, animationTrigger.length -1 ) != "histButton")
+                read($("#" + animationTrigger).html())
+        }
     }
+})
+$(document).on("pointermove", function() {
+    if (mouseDown)
+        $("#" + animationTrigger).trigger("pointerup")
 })
 function animate (Id, pressDirection) {
     let buttonDOM = $("#" + Id)[0]
