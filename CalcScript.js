@@ -12,7 +12,7 @@ $(document).ready(function () {
 
 // Allows keyboard input to act as numpad button click.
 // Enables arrow key usage.
-// Deals with allowing Ctrl keybinds such as Ctrl+C and Ctrl+V
+// Deals with allowing Ctrl keybinds such as Ctrl+C and Ctrl+V.
 let control = false
 let savedColor = new Object()
 let savedBackground = new Object()
@@ -33,84 +33,89 @@ $(document).ready(function () {
             input.blur()
             return
         }
-        if (mouseDown == false && keyDown == "") {
-            let display = $('#display').html()
-            let length = display.length
-            if ((trigger == "c" || trigger == "x") && control == true) 
-                navigator.clipboard.writeText(display.slice(loc, endloc))
-            else if (trigger == "ArrowLeft" || trigger== "ArrowRight") {
-                if (trigger == "ArrowLeft" && endloc > 0)
-                    endloc--
-                else if (trigger == "ArrowRight" && endloc < length)
-                    endloc++
-        
-                if (endloc != length)
-                    cursorPresent = true
-                
-                loc = endloc
-                input.setSelectionRange(loc, endloc)
-                return
-            }
-            else if (trigger == "ArrowUp" || trigger== "ArrowDown") {
-                let distanceFromRight = 0
-                for (let i = endloc; i < length; i++) {
-                    if (display[i] != "\n")
-                        distanceFromRight++
-                    else
-                        break
-                }
 
-                if (trigger == "ArrowUp") {
-                    let savedLoc = endloc - 1
-                    if (savedLoc > 0) {
-                        for (savedLoc; savedLoc >= 0; savedLoc--) {
-                            if (display[savedLoc] == "\n")
-                                break
-                        }
-                        if (savedLoc >= 0) {
-                            while (distanceFromRight > 0) {
-                                savedLoc = savedLoc - 1
-                                distanceFromRight--
-                            }
-                            if (savedLoc < 0)
-                                savedLoc = 0
-                            endloc = savedLoc
-                        }
+        let display = $('#display').html()
+        let length = display.length
+        if ((trigger == "c" || trigger == "x") && control == true) {
+            navigator.clipboard.writeText(display.slice(loc, endloc))
+            if (trigger == "x" && loc != endloc)
+                read($("#backspace").html())
+            return
+        }
+        else if (trigger == "ArrowLeft" || trigger== "ArrowRight") {
+            if (trigger == "ArrowLeft" && endloc > 0)
+                endloc--
+            else if (trigger == "ArrowRight" && endloc < length)
+                endloc++
+    
+            if (endloc != length)
+                cursorPresent = true
+            
+            loc = endloc
+            input.setSelectionRange(loc, endloc)
+            return
+        }
+        else if (trigger == "ArrowUp" || trigger== "ArrowDown") {
+            let distanceFromRight = 0
+            for (let i = endloc; i < length; i++) {
+                if (display[i] != "\n")
+                    distanceFromRight++
+                else
+                    break
+            }
+
+            if (trigger == "ArrowUp") {
+                let savedLoc = endloc - 1
+                if (savedLoc > 0) {
+                    for (savedLoc; savedLoc >= 0; savedLoc--) {
+                        if (display[savedLoc] == "\n")
+                            break
                     }
-                }
-                else if (trigger== "ArrowDown") {
-                    if (endloc < length - 1) {
-                        for (endloc; endloc < length; endloc++) {
-                            if (display[endloc] == "\n") {
-                                endloc++
-                                for (endloc; endloc < length; endloc++) {
-                                    if (display[endloc] == "\n")
-                                        break
-                                }
-                                break
-                            } 
-                        }
+                    if (savedLoc >= 0) {
                         while (distanceFromRight > 0) {
-                            endloc = endloc - 1
+                            savedLoc = savedLoc - 1
                             distanceFromRight--
                         }
-                        if (endloc < 0)
-                            endloc = 0
+                        if (savedLoc < 0)
+                            savedLoc = 0
+                        endloc = savedLoc
                     }
                 }
-                
-                if (endloc != length)
-                    cursorPresent = true
-
-                loc = endloc
-                input.setSelectionRange(loc, endloc)
-                return
             }
-            else if (trigger == "Shift") {
-                keyDown = ""
-                return
+            else if (trigger== "ArrowDown") {
+                if (endloc < length - 1) {
+                    for (endloc; endloc < length; endloc++) {
+                        if (display[endloc] == "\n") {
+                            endloc++
+                            for (endloc; endloc < length; endloc++) {
+                                if (display[endloc] == "\n")
+                                    break
+                            }
+                            break
+                        } 
+                    }
+                    while (distanceFromRight > 0) {
+                        endloc = endloc - 1
+                        distanceFromRight--
+                    }
+                    if (endloc < 0)
+                        endloc = 0
+                }
             }
+            
+            if (endloc != length)
+                cursorPresent = true
 
+            loc = endloc
+            input.setSelectionRange(loc, endloc)
+            return
+        }
+        else if (trigger == "Shift") {
+            keyDown = ""
+            return
+        }
+
+        if (mouseDown == false && keyDown == "") {
             keyDown = trigger
             if (control == false) {
                 trigger = triggerId(trigger)
@@ -129,12 +134,9 @@ $(document).ready(function () {
             
         if (mouseDown == false && trigger == keyDown) {
             keyDown = ""
-
             let id = triggerId(trigger)
-
             if (id == "ERROR")
                 return
-            
             if (id == "C" && control)
                 return 
 
@@ -157,12 +159,9 @@ $(document).ready(function () {
         keyDown = ""
         read(event.originalEvent.clipboardData.getData("text/plain"))
     })
-    $(document).on("cut", function() {
-        navigator.clipboard.writeText($('#display').html().slice(loc, endloc))
-    })
 })
 
-// Designates mouse/tap functionality as it relates to taking in input data and animating buttons.
+// Designates mouse/tap functionality as it relates to input data and animating buttons.
 let animationTrigger
 let mouseDown = false
 let fingerDown = ""
@@ -200,7 +199,7 @@ $(document).on("pointercancel", function() {
     }
 })
 
-// Designates the display set-up based on button input and cursor location.
+// Designates the display set-up based on input data and text-cursor location.
 let recursionRun = false
 function read(event) {
     // Changes what is on the display and adjusts the cursor location based on the adjusted display
@@ -236,7 +235,10 @@ function read(event) {
         lastOperation = ""
         display.style.fontSize = "30px"
         cursorPresent = false
-        setScreen(formula)
+        $('#display').html(formula)
+        endloc = loc = 1
+        input.setSelectionRange(loc, endloc)
+        resize()
         $('#answerDisplay').html("= ") 
     }
 
@@ -822,7 +824,7 @@ function read(event) {
         pastedTrigger = true
         let nonfancyTrigger = ""
         for (let i = 0; i < triggerLen; i++) {
-            if (trigger[i] == "," || trigger[i] == "\n" || formula[i] == "\r" || 
+            if (trigger[i] == "," || trigger[i] == "\n" || trigger[i] == "\r" || 
             trigger[i] == " " || trigger[i] == "<" || trigger[i] == "b" || trigger[i] == "r" || trigger[i] == ">")
                 continue
             else if (trigger[i] == "‑")
@@ -997,8 +999,6 @@ function read(event) {
             recursionRun = true
             let run
             if (i < potentialFormulaLen - 1) {
-                let test1 = potentialFormula[i]
-                let test2 = potentialFormula[i + 1]
                 if (potentialFormula[i] == "e" && (potentialFormula[i + 1] == "+" || potentialFormula[i + 1] == "-")) {
                     $('#display').html($('#display').html() + potentialFormula[i] + potentialFormula[i + 1])
                     i++
@@ -1015,7 +1015,7 @@ function read(event) {
                 loc = savedLoc
                 endloc = savedLoc
                 input.setSelectionRange(loc, endloc)
-                preCalc($('#display').html())
+                preCalc(lastFormula)
                 resize()
                 return 1
             }
@@ -1283,6 +1283,8 @@ function read(event) {
         endloc = length
         input.setSelectionRange(loc, endloc)
     }
+    else if (formula == $('#display').html())
+        return 1
     else
         setScreen(formula)
 
@@ -1302,7 +1304,7 @@ function read(event) {
     return errorCode
 }
 
-// Gets cursor location when display is clicked on
+// Gets text-cursor location when display is clicked on
 function focused() {
     cursorPresent = true
     $(document).on("mouseup", function() {
@@ -1382,6 +1384,8 @@ function triggerId(trigger) {
         id = "percent"
     else if (trigger == "." || trigger == "decimal")
         id = "decimal"
+    else if (trigger == "+/-" || trigger == "negative")
+        id = "negative"
     else if (trigger == "123" || trigger == "Hist" || trigger == "showHistory" || trigger == "h" || trigger == "H")
         id = "showHistory"
     else if (trigger == "Clear" || trigger == "clearHistory")
