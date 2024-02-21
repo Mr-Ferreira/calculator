@@ -162,6 +162,44 @@ $(document).ready(function () {
     })
 })
 
+// Designates mouse/tap functionality as it relates to taking in input data and animating buttons.
+let animationTrigger
+let mouseDown = false
+let fingerDown = ""
+$(document).on("pointerdown", function(event) {
+    if (keyDown == "" && fingerDown == "") {
+        mouseDown = true
+        let id = triggerId(event.target.id)
+        animationTrigger = fingerDown = id
+        if ($("#" + animationTrigger).attr("name") == "button") 
+            animate(animationTrigger, "down")
+    }
+})
+$(document).on("pointerup", function(event) {
+    if (keyDown == "" && mouseDown) {
+        mouseDown = false
+        let id = triggerId(event.target.id)
+        if (id != fingerDown) {
+            animate(animationTrigger, "up")
+            fingerDown = ""
+            return
+        }
+        fingerDown = ""
+        if ($("#" + animationTrigger).attr("name") == "button") {
+            animate(animationTrigger, "up")
+            if (animationTrigger != "showHistory" && animationTrigger.slice(0, animationTrigger.length - 1) != "histButton")
+                read($("#" + animationTrigger).html())
+        }
+    }
+})
+$(document).on("pointercancel", function() {
+    if (mouseDown) {
+        mouseDown = false
+        animate(animationTrigger, "up")
+        fingerDown = ""
+    }
+})
+
 // Designates the display set-up based on button input and cursor location.
 let recursionRun = false
 function read(event) {
@@ -1356,42 +1394,6 @@ function triggerId(trigger) {
 }
 
 // Animates buttons when pressed/clicked.
-let animationTrigger
-let mouseDown = false
-let fingerDown = ""
-$(document).on("pointerdown", function(event) {
-    if (keyDown == "" && fingerDown == "") {
-        mouseDown = true
-        let id = triggerId(event.target.id)
-        animationTrigger = fingerDown = id
-        if ($("#" + animationTrigger).attr("name") == "button") 
-            animate(animationTrigger, "down")
-    }
-})
-$(document).on("pointerup", function(event) {
-    if (keyDown == "" && mouseDown) {
-        mouseDown = false
-        let id = triggerId(event.target.id)
-        if (id != fingerDown) {
-            animate(animationTrigger, "up")
-            fingerDown = ""
-            return
-        }
-        fingerDown = ""
-        if ($("#" + animationTrigger).attr("name") == "button") {
-            animate(animationTrigger, "up")
-            if (animationTrigger != "showHistory" && animationTrigger.slice(0, animationTrigger.length - 1) != "histButton")
-                read($("#" + animationTrigger).html())
-        }
-    }
-})
-$(document).on("pointercancel", function() {
-    if (mouseDown) {
-        mouseDown = false
-        animate(animationTrigger, "up")
-        fingerDown = ""
-    }
-})
 function animate (Id, pressDirection) {
     let buttonDOM = $("#" + Id)[0]
     if (buttonDOM == undefined)
