@@ -1373,6 +1373,7 @@ $(document).on("pointerup", function() {
         animate(animationTrigger, "up")
         if (animationTrigger != "showHistory" && animationTrigger.slice(0, animationTrigger.length -1 ) != "histButton")
             read($("#" + animationTrigger).html())
+        input.focus()
     }
 })
 function animate (Id, pressDirection) {
