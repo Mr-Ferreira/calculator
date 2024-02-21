@@ -1386,8 +1386,10 @@ $(document).on("pointerup", function(event) {
     }
 })
 $(document).on("pointercancel", function() {
-    if (mouseDown)
-        $("#" + animationTrigger).trigger("pointerup")
+    if (mouseDown) {
+        animate(animationTrigger, "up")
+        fingerDown = ""
+    }
 })
 function animate (Id, pressDirection) {
     let buttonDOM = $("#" + Id)[0]
