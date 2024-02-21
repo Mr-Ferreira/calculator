@@ -1358,7 +1358,7 @@ function triggerId(trigger) {
 // Animates buttons when pressed/clicked.
 let animationTrigger
 let mouseDown = false
-$(document).on("mousedown", function(event) {
+$(document).on("pointerdown", function(event) {
     animationTrigger = event.target.id
     animationTrigger = triggerId(animationTrigger)
     if ($("#" + animationTrigger).attr("name") == "button" && keyDown == "") {
@@ -1366,7 +1366,7 @@ $(document).on("mousedown", function(event) {
         animate(animationTrigger, "down")
     }
 })
-$(document).on("mouseup", function() {
+$(document).on("pointerup", function() {
     if ($("#" + animationTrigger).attr("name") == "button" && keyDown == "") {
         mouseDown = false
         animate(animationTrigger, "up")
