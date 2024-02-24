@@ -6,12 +6,13 @@ Still adding features - with plans to make a fully functioning scientific calcul
 
 ## Features
 
-* Floating point value arithmetic with 10<sup>-10</sup> accuracy
-* Calculation Preview
-* Keyboard input capability
-* Ability to modify calculation set-up at a desired cursor location
-* Storage of past calculations and ability to re-use past calculations
-* Ability to repeat last operation by pressing "=" button
+* Floating point value arithmetic with 10<sup>-10</sup> accuracy.
+* Calculation Preview.
+* Keyboard input capability -
+    * Smart detection of valid cut/copy/pasting of long form formulas.
+* Ability to modify calculation set-up at a desired text-caret location.
+* Storage of past calculations and ability to re-use past calculations.
+* Ability to repeat last operation by pressing "=" button.
 
 ## Screenshot
 
