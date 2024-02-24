@@ -1,4 +1,3 @@
-let modifiedOutput = undefined
 let formula = "0"
 let lastOperation = ""
 let loc = 1
@@ -16,6 +15,11 @@ $(document).ready(function () {
 let control = false
 let savedColor = new Object()
 let savedBackground = new Object()
+let savedFormulas = []
+// Saves Ctrl-Z data for use in Ctrl-Y operations
+let savedUndos = []
+// Variable for checking if a current Ctrl-Z operation is being run
+let zRun = false
 let keyDown = ""
 $(document).ready(function () {
     $('[name="button"').each(function () {
@@ -41,6 +45,30 @@ $(document).ready(function () {
             if (trigger == "x" && loc != endloc)
                 read($("#backspace").html())
             return
+        }
+        else if (trigger == "z" && control == true) {
+            let savedFormulasLen = savedFormulas.length
+            if (savedFormulasLen != 0) {
+                savedUndos.push(savedFormulas[savedFormulasLen - 1])
+                savedFormulas.pop()
+            }
+            savedFormulasLen = savedFormulas.length
+            if (savedFormulasLen != 0) {
+                reset()
+                zRun = true
+                read(savedFormulas[savedFormulasLen - 1])
+                zRun = false
+            }
+            else
+                reset()
+        }
+        else if (trigger == "y" && control == true) {
+            let savedUndosLen = savedUndos.length
+            if (savedUndosLen != 0) {
+                reset()
+                read(savedUndos[savedUndosLen - 1])
+                savedUndos.pop()
+            }  
         }
         else if (trigger == "ArrowLeft" || trigger== "ArrowRight") {
             if (trigger == "ArrowLeft" && endloc > 0)
@@ -186,8 +214,13 @@ $(document).on("pointerup", function(event) {
         fingerDown = ""
         if ($("#" + animationTrigger).attr("name") == "button") {
             animate(animationTrigger, "up")
-            if (animationTrigger != "showHistory" && animationTrigger.slice(0, animationTrigger.length - 1) != "histButton")
-                read($("#" + animationTrigger).html())
+            if (animationTrigger != "showHistory") {
+                let input = $("#" + animationTrigger).html()
+                if ($("#" + animationTrigger).html()[0] == "=" && $("#" + animationTrigger).html().length > 1)
+                    input = $("#" + animationTrigger).html().slice(2)
+                read(input)
+            }
+                
         }
     }
 })
@@ -199,11 +232,29 @@ $(document).on("pointercancel", function() {
     }
 })
 
+// Resets global variables
+function reset() {
+    formula = "0"
+    lastOperation = ""
+    display.style.fontSize = "30px"
+    cursorPresent = false
+    $('#display').html(formula)
+    endloc = loc = 1
+    input.setSelectionRange(loc, endloc)
+    resize()
+    $('#answerDisplay').html("= ") 
+}
+
 // Designates the display set-up based on input data and text-cursor location.
 let recursionRun = false
 function read(event) {
+    // Tracks whether or not a calculate function call is a recursive call or a parse call.
+    let finalCalculationRun = true
+
     // Changes what is on the display and adjusts the cursor location based on the adjusted display
     function setScreen(string) {
+        if (zRun == false)
+            savedFormulas.push(string)
         let fancyString = fancy(string)
         $('#display').html(fancyString)
         if (cursorPresent == false) {
@@ -228,26 +279,43 @@ function read(event) {
         resize()
     }
 
-    // Resets global variables
-    function reset() {
-        modifiedOutput = undefined
-        formula = "0"
-        lastOperation = ""
-        display.style.fontSize = "30px"
-        cursorPresent = false
-        $('#display').html(formula)
-        endloc = loc = 1
-        input.setSelectionRange(loc, endloc)
-        resize()
-        $('#answerDisplay').html("= ") 
-    }
-
     // Calculates the parsed formula.
     // Recall - PEMDAS.
     function calculate (formula) {
-        // Limits size of calculated numbers to 10 digits after the decimal,
+        let length = formula.length
+        let calculation = 0
+        if (formula == "ERROR")
+            return "ERROR"
+        // Solve parentheses using recursion.
+        let parenthesesSize = 0
+        for (let i = 0; i < length; i++) {
+            if (formula[i] == "(") {
+                let openCount = 1
+                let closedCount = 0
+                for (let j = i + 1; j < length; j++) {
+                    if (formula[j] == "(")
+                        openCount++
+                    else if (formula[j] == ")")
+                        closedCount++
+                    if (openCount == closedCount)  {
+                        parenthesesSize = (j - i) + 1
+                        let localCalc = 0
+                        finalCalculationRun = false
+                        localCalc = calculate(formula.slice((i + 1), j))
+                        finalCalculationRun = true
+                        if (localCalc == "ERROR")
+                            return "ERROR"
+                        formula.splice(i, parenthesesSize, localCalc)
+                        length = formula.length
+                        break
+                    }
+                }
+            }
+        }
+
+        // Limits size of numbers to 10 digits after the decimal,
         // this is due to Javascript's floating point number innaccuracy.
-        // Limits size of calculated numbers to 15 digits total.
+        // Limits size of numbers to 15 digits total.
         function precision(num) {
             if (num == "0")
                 return num
@@ -326,6 +394,7 @@ function read(event) {
                 }   
                 else 
                     num = tempNum.slice(0, (tempNum.length - 1)) + eQuantity
+                eIndex = num.length - eQuantity.length
             }
 
             let digitCount = 0
@@ -396,6 +465,34 @@ function read(event) {
                 num = num.toString()  
             }
 
+            length = num.length
+            if (decIndex != -1 && eIndex != -1) {
+                let tempNum = num.slice(0, eIndex)
+                for (let i = eIndex- 1; i >= 0; i--) {
+                    if (num[i] == "0")
+                        tempNum = num.slice(0, i)
+                    else if (num[i] == ".") {
+                        tempNum = num.slice(0, i)
+                        break
+                    }
+                    else 
+                        break
+                }
+                num = tempNum + num.slice(eIndex)
+            }
+            else if (decIndex != -1) {
+                for (let i = length - 1; i >= 0; i--) {
+                    if (num[i] == "0")
+                        num = num.slice(0, i)
+                    else if (num[i] == ".") {
+                        num = num.slice(0, i)
+                        break
+                    }
+                    else
+                        break
+                }
+            }
+
             if (digitCount > 15 && eIndex == -1) {
                 let negSign = false
                 if (num[0] == "-") {
@@ -415,41 +512,45 @@ function read(event) {
             return num
         }
 
-        let length = formula.length
-        let calculation = 0
-        if (formula == "ERROR")
-            return "ERROR"
-        // Solve parentheses using recursion.
-        let parenthesesSize = 0
-        for (let i = 0; i < length; i++) {
-            if (formula[i] == "(") {
-                let openCount = 1
-                let closedCount = 0
-                for (let j = i + 1; j < length; j++) {
-                    if (formula[j] == "(")
-                        openCount++
-                    else if (formula[j] == ")")
-                        closedCount++
-                    if (openCount == closedCount)  {
-                        parenthesesSize = (j - i) + 1
-                        let localCalc = 0
-                        localCalc = calculate(formula.slice((i + 1), j))
-                        if (localCalc == "ERROR")
-                            return "ERROR"
-                        formula.splice(i, parenthesesSize, localCalc)
-                        length = formula.length
-                        break
-                    }
+        // Takes the 2 numbers in a given operation and truncates them both if they are both floating point values.
+        function operationOfDecimals (num1, num2) {
+            let num1Len = num1.length
+            let num2Len = num2.length
+            let num1Dec = false
+            let num2Dec = false
+
+            for (let j = 0; j < num1Len; j++) {
+                if (num1[j] == ".") {
+                    num1Dec = true
+                    break
                 }
             }
+            for (let j = 0; j < num2Len; j++) {
+                if (num2[j] == ".") {
+                    num2Dec = true
+                    break
+                }
+            }
+            if (num2Dec && num1Dec) {
+                num1 = Number(precision(num1))
+                num2 = Number(precision(num2))
+            }
+            else {
+                num1 = Number(num1)
+                num2 = Number(num2)
+            }
+            return [num1, num2]
         }
 
         // Solve multiplications and divisions.
         for (let i = 0; i < length; i++) {
             if ((formula[i] == "*" || formula[i] == "/") && i != (length - 1)) {
                 let localCalc = 0
-                let num1 = Number(precision(formula[i - 1]))
-                let num2 = Number(precision(formula[i + 1]))
+
+                let nums = operationOfDecimals(formula[i - 1], formula[i + 1])
+                let num1 = nums[0]
+                let num2 = nums[1]
+
                 if (formula[i] == "*")
                     localCalc = num1 * num2
                 else {
@@ -458,7 +559,7 @@ function read(event) {
                     else
                         localCalc = num1 / num2
                 }
-                localCalc = precision(localCalc.toString())
+                localCalc = localCalc.toString()
                 formula.splice(i - 1, 3, localCalc)
                 length = formula.length
                 i = i - 1
@@ -469,7 +570,10 @@ function read(event) {
         let sum = false
         let sub = false
         for (let i = 0; i < length; i++) {
-            let num = Number(precision(formula[i]))
+            let nums = operationOfDecimals(calculation, formula[i])
+            calculation = nums[0]
+            let num = nums[1]
+
             if (!isNaN(num)) {
                 if (sum || i == 0) {
                     calculation = calculation + num
@@ -479,14 +583,18 @@ function read(event) {
                     calculation = calculation - num
                     sub = false
                 }
-                calculation = Number(precision(calculation.toString()))
+                calculation = calculation.toString()
             }
             else if (formula[i] == "+") 
                 sum = true
             else if (formula[i] == "-") 
                 sub = true
         }
-        return precision(calculation.toString())
+
+        calculation = calculation.toString()
+        if (finalCalculationRun)
+            calculation = precision(calculation)
+        return calculation
     }
 
     let completedFormula = "0" // Global variable that holds the parsed formula with completed paratheses
@@ -558,8 +666,11 @@ function read(event) {
                         if (formula[i + 1] == "×" || formula[i + 1] == "÷")
                             percentageOfFormula = ""
                     }
-                    if (percentageOfFormula != "")
+                    if (percentageOfFormula != "") {
+                        finalCalculationRun = false
                         percentageOfFormula = calculate(parse(percentageOfFormula))
+                        finalCalculationRun = true
+                    }
                     next()
                     if (parsedFormula[parsedFormulaIndex - 1] == ")") {
                         parsedFormulaLen = parsedFormula.length
@@ -712,7 +823,7 @@ function read(event) {
 
             if (unbrokenChars > 22) {
                 for (let j = i; j >= 0; j--) {
-                    if (typeId(formula[j]) == 0 || formula[j] == "(" || formula[j] == ")") {
+                    if ((typeId(formula[j]) == 0 || formula[j] == "(" || formula[j] == ")") && j != i) {
                         if (typeId(formula[j]) == 0 && j > 0) {
                             if (formula[j - 1] == "e")
                                 continue
@@ -720,7 +831,7 @@ function read(event) {
                         if (j != 0) {
                             if (formula[j - 1] != "\n") {
                                 formula = formula.slice(0, j) + "\n" + formula.slice(j)
-                                i--
+                                i = j
                                 length++
                                 unbrokenChars = 0
                             }
@@ -876,11 +987,6 @@ function read(event) {
     if (nonFancyLoc == length)
         cursorPresent = false
 
-    if (trigger != "=" && modifiedOutput == false)
-        modifiedOutput = true
-    else if (trigger != "=" && modifiedOutput == true)
-        modifiedOutput = undefined
-
     if (trigger == "C") {
         reset()
         return 0
@@ -891,13 +997,13 @@ function read(event) {
         length = formula.length
         let operationPresence = operationPresent(formula)
         if (operationPresence) {
-            modifiedOutput = false
-            lastOperation = formula
-        }
-        if (operationPresence == false && modifiedOutput == false) {
+            lastOperation = parse(formula)
+            lastOperation = completedFormula
+        }    
+        if (operationPresence == false) {
             let lastOperationLen = lastOperation.length
             let closedCount = 0
-            for (let i = lastOperationLen - 1; i > 0; i--) {
+            for (let i = lastOperationLen - 1; i >= 0; i--) {
                 if (lastOperation[lastOperationLen - 1] == ")" || lastOperation.slice(lastOperationLen - 2) == ")%") {
                     if (lastOperation[i] == ")")
                         closedCount++
@@ -907,7 +1013,11 @@ function read(event) {
                         lastOperation = lastOperation.slice(i)
                         break
                     }
+                    else if (i == 0 && typeId(lastOperation[i]) != 0)
+                        lastOperation = "×" + lastOperation
                 }
+                else if (i == 0 && typeId(lastOperation[i]) != 0) 
+                    lastOperation = "×" + lastOperation
                 else if (typeId(lastOperation[i]) == 0 && lastOperation[i - 1] != "e") {
                     lastOperation = lastOperation.slice(i)
                     break
@@ -943,7 +1053,7 @@ function read(event) {
                     let text
                     let list = $("<li></li>")
                     let button = $("<button name='button' id='histButton" + histCount + 
-                    "' type='button' onclick='calcHistory(event)' style='font-size: 20px;width: 100%;height: 100%;border-radius: 0%;'></button>")
+                    "' type='button' style='font-size: 20px;width: 100%;height: 100%;border-radius: 0%;'></button>")
                     let container = $('#listContainer')
 
                     let stringLen = string.length
@@ -1148,8 +1258,6 @@ function read(event) {
             formula = formula + "%"
     }
     else if (trigger == ".") {
-        if (modifiedOutput == true)
-            reset()
         if (typeId(formula[length - 1]) == 1 && formula[length - 1] != "%") {
             let digitCount = 0
             for (let i = length - 1; i >= 0; i--) {
@@ -1213,8 +1321,6 @@ function read(event) {
     else if (typeId(trigger) == 1){
         if (formula[length - 1] == "e") 
                 return 1
-        if (modifiedOutput == true)
-            reset()
         if (length > 1 && (formula[length - 1] == "%" || formula[length - 1] == ")")) 
             formula = formula + "×" + trigger
         else if (formula == "0" || formula == "ERROR")
@@ -1299,7 +1405,6 @@ function read(event) {
             preCalc("=")
         else
             preCalc(formula)
-        $('#display')[0].scrollTop = display.scrollHeight
     }
     return errorCode
 }
@@ -1324,6 +1429,7 @@ function resize() {
             return
         display.style.fontSize = fontSize.toString() + "px"
     }
+    display.scrollTop = display.scrollHeight
 }
 
 // History container button functionalities
@@ -1353,11 +1459,6 @@ function calcHistory(event) {
             })
             histCount = 0
         }  
-        else {
-            if (trigger[0] == "=")
-                trigger = trigger.slice(1)
-            read(trigger)
-        }
     }
 }
 
