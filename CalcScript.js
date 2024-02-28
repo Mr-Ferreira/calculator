@@ -231,7 +231,7 @@ $(document).on("pointerup", function(event) {
         else
             calcHistory($("#" + id).html())
     }
-    else if (keyDown[id] == false) {
+    else if (keyDown[id] == false || keyDown[id] == undefined) {
         for (i in keyDown) {
             keyDown[i] = false
             animate(i, "up")
