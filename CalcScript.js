@@ -15,18 +15,20 @@ $(document).ready(function () {
 let control = false
 let savedColor = new Object()
 let savedBackground = new Object()
+let keyDown = new Object()
 let savedFormulas = []
 // Saves Ctrl-Z data for use in Ctrl-Y operations
 let savedUndos = []
 // Variable for checking if a current Ctrl-Z operation is being run
 let zRun = false
-let keyDown = ""
+//let keyDown = ""
 $(document).ready(function () {
     $('[name="button"').each(function () {
         let buttonId = $(this).attr('id')
         let element = $(this)[0]
         savedBackground[buttonId] = window.getComputedStyle(element, null).getPropertyValue("background-color")
         savedColor[buttonId] = window.getComputedStyle(element, null).getPropertyValue("color")
+        keyDown[buttonId] = false
     })
 
     $(document).on("keydown", function(event) {
@@ -139,32 +141,40 @@ $(document).ready(function () {
             return
         }
         else if (trigger == "Shift") {
-            keyDown = ""
+            for (i in keyDown) {
+                keyDown[i] = false
+                animate(i, "up")
+            } 
             return
         }
 
-        if (mouseDown == false && keyDown == "") {
-            keyDown = trigger
-            if (control == false) {
-                trigger = triggerId(trigger)
-                animate(trigger, "down")  
-            }
+        let id = triggerId(trigger)
+        if (id == "ERROR")
+            return
+        keyDown[id] = true
+        if (control == false) {
+            animate(id, "down")  
         }
     })
     $(document).on("keyup", function(event) {
         let trigger = event.key
+        let id = triggerId(trigger)
         if (trigger == "Control" || trigger == "Command") {
             setTimeout(() => {
                 control = false
                 input.focus()
             }, 100)
         }
-            
-        if (mouseDown == false && trigger == keyDown) {
-            keyDown = ""
-            let id = triggerId(trigger)
-            if (id == "ERROR")
-                return
+        else if (trigger == "Shift") {
+            for (i in keyDown) {
+                keyDown[i] = false
+                animate(i, "up")
+            }
+            return
+        }
+
+        if (keyDown[id] == true) {
+            keyDown[id] = false
             if (id == "C" && control)
                 return 
 
@@ -184,51 +194,40 @@ $(document).ready(function () {
         input.focus()
     })
     $(document).on("paste", function(event) {
-        keyDown = ""
+        for (i in keyDown)
+            keyDown[i] = false
         read(event.originalEvent.clipboardData.getData("text/plain"))
     })
 })
 
 // Designates mouse/tap functionality as it relates to input data and animating buttons.
-let animationTrigger
-let mouseDown = false
-let fingerDown = ""
 $(document).on("pointerdown", function(event) {
-    if (keyDown == "" && fingerDown == "") {
-        mouseDown = true
-        let id = triggerId(event.target.id)
-        animationTrigger = fingerDown = id
-        if ($("#" + animationTrigger).attr("name") == "button") 
-            animate(animationTrigger, "down")
-    }
+    let id = triggerId(event.target.id)
+    if (id == "ERROR")
+        return
+    keyDown[id] = true
+    if ($("#" + id).attr("name") == "button") 
+        animate(id, "down")
 })
 $(document).on("pointerup", function(event) {
-    if (keyDown == "" && mouseDown) {
-        mouseDown = false
-        let id = triggerId(event.target.id)
-        if (id != fingerDown) {
-            animate(animationTrigger, "up")
-            fingerDown = ""
-            return
+    let id = triggerId(event.target.id)
+    if (keyDown[id] == true) {
+        keyDown[id] = false
+        animate(id, "up")
+        if (id != "showHistory" && id != "clearHistory") {
+            let input = $("#" + id).html()
+            if (input[0] == "=" && input.length > 1)
+                input = input.slice(2)
+            read(input)
         }
-        fingerDown = ""
-        if ($("#" + animationTrigger).attr("name") == "button") {
-            animate(animationTrigger, "up")
-            if (animationTrigger != "showHistory") {
-                let input = $("#" + animationTrigger).html()
-                if ($("#" + animationTrigger).html()[0] == "=" && $("#" + animationTrigger).html().length > 1)
-                    input = $("#" + animationTrigger).html().slice(2)
-                read(input)
-            }
-                
-        }
+        else
+            calcHistory($("#" + id).html())
     }
 })
 $(document).on("pointercancel", function() {
-    if (mouseDown) {
-        mouseDown = false
-        animate(animationTrigger, "up")
-        fingerDown = ""
+    for (i in keyDown) {
+        keyDown[i] = false
+        animate(i, "up")
     }
 })
 
@@ -1440,26 +1439,24 @@ function calcHistory(event) {
         trigger = event
     else 
         trigger = event.target.innerHTML
-    if (keyDown == "") {
-        if (trigger == "Hist") {
-            $('#histContainer')[0].style.display = "block"
-            let histList = $('#listContainer')[0]
-            histList.scrollTop = histList.scrollHeight
-            $('#numPad')[0].style.display = "none"
-            $('#showHistory').html("123")
-        }
-        else if (trigger == "123") {
-            $('#histContainer')[0].style.display = "none"
-            $('#numPad')[0].style.display = "block"
-            $('#showHistory').html("Hist")
-        }
-        else if (trigger == "Clear") {
-            $('#listContainer').children().each(function () {
-                $('#listContainer').children().last().remove()
-            })
-            histCount = 0
-        }  
+    if (trigger == "Hist") {
+        $('#histContainer')[0].style.display = "block"
+        let histList = $('#listContainer')[0]
+        histList.scrollTop = histList.scrollHeight
+        $('#numPad')[0].style.display = "none"
+        $('#showHistory').html("123")
     }
+    else if (trigger == "123") {
+        $('#histContainer')[0].style.display = "none"
+        $('#numPad')[0].style.display = "block"
+        $('#showHistory').html("Hist")
+    }
+    else if (trigger == "Clear") {
+        $('#listContainer').children().each(function () {
+            $('#listContainer').children().last().remove()
+        })
+        histCount = 0
+    }  
 }
 
 // Translates raw keyboard/mouse input events into HTML DOM Ids
@@ -1493,7 +1490,9 @@ function triggerId(trigger) {
         id = "clearHistory"
     else if (trigger.slice(0, 10) == "histButton")
         id = trigger
-    else if (isNaN(Number(trigger)))
+    else if (!isNaN(Number(trigger)) && trigger != "" && trigger != " ")
+        id = trigger
+    else
         id = "ERROR"
     return id
 }
