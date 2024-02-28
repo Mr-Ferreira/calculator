@@ -200,6 +200,14 @@ $(document).ready(function () {
     })
 })
 
+// Allows cut command from context menu
+function cutContextMenu () {
+    let display = $('#display').html()
+    navigator.clipboard.writeText(display.slice(loc, endloc))
+    if (loc != endloc)
+        read($("#backspace").html())
+}
+
 // Designates mouse/tap functionality as it relates to input data and animating buttons.
 $(document).on("pointerdown", function(event) {
     let id = triggerId(event.target.id)
