@@ -231,6 +231,12 @@ $(document).on("pointerup", function(event) {
         else
             calcHistory($("#" + id).html())
     }
+    else if (keyDown[id] == false) {
+        for (i in keyDown) {
+            keyDown[i] = false
+            animate(i, "up")
+        }
+    }
 })
 $(document).on("pointercancel", function() {
     for (i in keyDown) {
@@ -1324,6 +1330,8 @@ function read(event) {
         }
         else if (formula == "0" && trigger == "-")
             formula = "-"
+        else if (formula[length - 1] == "e" && (trigger == "-" || trigger == "+")) 
+            formula = formula + trigger
     }
     else if (typeId(trigger) == 1){
         if (formula[length - 1] == "e") 
