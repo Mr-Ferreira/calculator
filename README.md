@@ -17,8 +17,8 @@ Still adding features - with plans to make a fully functioning scientific calcul
 
 ## Screenshot
 
-![Calc](https://github.com/Mr-Ferreira/Calculator/assets/133887611/5e149f51-b19b-4a0d-b8e2-439b6929f1f1)
+![Calc](https://github.com/MrFerreira-net/Calculator/assets/133887611/5e149f51-b19b-4a0d-b8e2-439b6929f1f1)
 
 ## Access
 
-You can access a live version [here.](https://mr-ferreira.github.io/Calculator/)
+You can access a live version [here.](https://mrferreira-net.github.io/Calculator/)
