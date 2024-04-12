@@ -375,8 +375,9 @@ function read(event) {
                 eQuantity = num.slice(eIndex)
             
             if (tempNum != "") {
-                if (Number(tempNum[tempNum.length - 1]) > 4){
-                    let newVal = tempNum.slice(nonZeroIndex)
+                let tempNumLast = tempNum.length - 1
+                if (Number(tempNum[tempNumLast]) > 4){
+                    let newVal = tempNum.slice(nonZeroIndex, tempNumLast)
                     let preRoundLen = 0
                     let postRoundLen = 0
                     tempNum = tempNum.slice(0, (decIndex + 1))
@@ -406,7 +407,7 @@ function read(event) {
                     num = tempNum + newVal + eQuantity
                 }   
                 else 
-                    num = tempNum.slice(0, (tempNum.length - 1)) + eQuantity
+                    num = tempNum.slice(0, tempNumLast) + eQuantity
                 eIndex = num.length - eQuantity.length
             }
 
@@ -583,7 +584,7 @@ function read(event) {
         let sum = false
         let sub = false
         for (let i = 0; i < length; i++) {
-            let nums = operationOfDecimals(calculation, formula[i])
+            let nums = operationOfDecimals(calculation.toString(), formula[i])
             calculation = nums[0]
             let num = nums[1]
 
@@ -1121,13 +1122,6 @@ function read(event) {
         for (let i = 0; i < potentialFormulaLen; i++) {
             recursionRun = true
             let run
-            if (i < potentialFormulaLen - 1) {
-                if (potentialFormula[i] == "e" && (potentialFormula[i + 1] == "+" || potentialFormula[i + 1] == "-")) {
-                    $('#display').html($('#display').html() + potentialFormula[i] + potentialFormula[i + 1])
-                    i++
-                    continue
-                }
-            }
 
             run = read(potentialFormula[i])
             if (run == 1 && potentialFormula[i] == "0" && trigger == "⌫") 
@@ -1165,6 +1159,12 @@ function read(event) {
                 return 0
             }
         }
+    }
+    else if (trigger == "e") {
+        if (isNaN(Number(formula[length - 1]))) 
+            return 1
+        else
+            formula = formula + trigger
     }
     else if (trigger == "z") {
         if (formula[length - 1] == "e") 
