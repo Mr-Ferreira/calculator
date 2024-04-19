@@ -21,7 +21,7 @@ let copied
 $(document).ready(function () {
     $('[name="button"').each(function () {
         let buttonId = $(this).attr('id'), 
-        element = $(this)[0]
+            element = $(this)[0]
 
         savedBackground[buttonId] = window.getComputedStyle(element, null).getPropertyValue("background-color")
         savedColor[buttonId] = window.getComputedStyle(element, null).getPropertyValue("color")
@@ -39,7 +39,7 @@ $(document).ready(function () {
         let display = $('#display').html(),
             length = display.length
         if ((trigger == "c" || trigger == "x") && control == true) {
-            copied = window.getSelection().toString()
+            copied = display.slice(loc, endloc)
             navigator.clipboard.writeText(copied)
             if (trigger == "x" && loc != endloc)
                 read($("#backspace").html())
@@ -203,14 +203,14 @@ $(document).ready(function () {
         read(copied)
     })
     $(document).on("copy", function() {
-        copied = window.getSelection().toString()
+        copied = display.slice(loc, endloc)
         navigator.clipboard.writeText(copied)
     })
 })
 
 // Allows cut command from context menu
 function cutContextMenu () {
-    copied = window.getSelection().toString()
+    copied = display.slice(loc, endloc)
     navigator.clipboard.writeText(copied)
     if (loc != endloc)
         read($("#backspace").html())
@@ -295,8 +295,8 @@ function read(event) {
             endloc = loc
         }
         else {
-            let fancyIndex = 0
-            let strIndex = 0
+            let fancyIndex = 0,
+                strIndex = 0
             while (strIndex < endloc) {
                 if (string[strIndex] == fancyString[fancyIndex]) {
                     strIndex++
@@ -393,9 +393,9 @@ function read(event) {
                 let tempNumLast = tempNum.length - 1
                 if (Number(tempNum[tempNumLast]) > 4){
                     let newVal = tempNum.slice(nonZeroIndex, tempNumLast),
-                        preRoundLen = 0, postRoundLen = 0,
+                        preRoundLen = 0, postRoundLen = 0
+
                     tempNum = tempNum.slice(0, (decIndex + 1))
-                    
                     preRoundLen = newVal.length
                     newVal = Number(newVal) + 1
                     newVal = newVal.toString()
@@ -424,9 +424,9 @@ function read(event) {
                     num = tempNum.slice(0, tempNumLast) + eQuantity
                 eIndex = num.length - eQuantity.length
             }
+            length = num.length
 
             let digitCount = 0, fifteenIndex = -1, sixteenIndex = -1
-            length = num.length
             for (let i = 0; i < length; i++) {
                 if (!isNaN(Number(num[i]))) {
                     digitCount++
@@ -566,11 +566,10 @@ function read(event) {
         // Solve multiplications and divisions.
         for (let i = 0; i < length; i++) {
             if ((formula[i] == "*" || formula[i] == "/") && i != (length - 1)) {
-                let localCalc = 0
-
-                let nums = operationOfDecimals(formula[i - 1], formula[i + 1])
-                let num1 = nums[0]
-                let num2 = nums[1]
+                let localCalc = 0,
+                    nums = operationOfDecimals(formula[i - 1], formula[i + 1]),
+                    num1 = nums[0],
+                    num2 = nums[1]
 
                 if (formula[i] == "*")
                     localCalc = num1 * num2
@@ -1043,8 +1042,8 @@ function read(event) {
         else
             return 1
         if (preFormula != postFormula && formula != "ERROR") {
-            let historyIndex = $('#listContainer').children().length - 2
-            let lastHistOperation = ""
+            let historyIndex = $('#listContainer').children().length - 2,
+                lastHistOperation = ""
             if (historyIndex >= 0)
                 lastHistOperation = $('#listContainer').children().eq(historyIndex).children().first().html()
             if (lastHistOperation != preFormula) {
@@ -1380,9 +1379,9 @@ function read(event) {
             }
         }
     }
+    length = formula.length
     
     let postFormula = formula
-    length = formula.length
     if (recursionRun) {
         $('#display').html(formula)
         loc = length
