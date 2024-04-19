@@ -1,9 +1,5 @@
-let formula = "0"
-let lastOperation = ""
-let loc = 1
-let endloc = 1
-let cursorPresent = false
-let input
+let formula = "0", lastOperation = "", loc = 1, 
+    endloc = 1, cursorPresent = false, input
 $(document).ready(function () {
     input = $('#display')[0]
     input.setSelectionRange(loc, endloc)
@@ -13,19 +9,20 @@ $(document).ready(function () {
 // Enables arrow key usage.
 // Deals with allowing Ctrl keybinds such as Ctrl+C and Ctrl+V.
 let control = false
-let savedColor = new Object()
-let savedBackground = new Object()
-let keyDown = new Object()
-let savedFormulas = []
+let savedColor = new Object(), 
+    savedBackground = new Object(), 
+    keyDown = new Object(), 
+    savedFormulas = []
 // Saves Ctrl-Z data for use in Ctrl-Y operations
 let savedUndos = []
 // Variable for checking if a current Ctrl-Z operation is being run
 let zRun = false
-//let keyDown = ""
+let copied
 $(document).ready(function () {
     $('[name="button"').each(function () {
-        let buttonId = $(this).attr('id')
-        let element = $(this)[0]
+        let buttonId = $(this).attr('id'), 
+        element = $(this)[0]
+
         savedBackground[buttonId] = window.getComputedStyle(element, null).getPropertyValue("background-color")
         savedColor[buttonId] = window.getComputedStyle(element, null).getPropertyValue("color")
         keyDown[buttonId] = false
@@ -34,18 +31,30 @@ $(document).ready(function () {
     $(document).on("keydown", function(event) {
         let trigger = event.key
     
-        if ((trigger == "Control" || trigger == "Command") && control == false) {
+        if (trigger == "Control" || trigger == "Command") {
             control = true
-            input.blur()
             return
         }
 
-        let display = $('#display').html()
-        let length = display.length
+        let display = $('#display').html(),
+            length = display.length
         if ((trigger == "c" || trigger == "x") && control == true) {
-            navigator.clipboard.writeText(display.slice(loc, endloc))
+            copied = window.getSelection().toString()
+            navigator.clipboard.writeText(copied)
             if (trigger == "x" && loc != endloc)
                 read($("#backspace").html())
+            return
+        }
+        else if (trigger == "v" && control == true) {
+            for (i in keyDown)
+                keyDown[i] = false
+            read(copied)
+            return
+        }
+        else if (trigger == "a" && control == true) {
+            loc = 0
+            endloc = length
+            input.setSelectionRange(loc, endloc)
             return
         }
         else if (trigger == "z" && control == true) {
@@ -157,12 +166,11 @@ $(document).ready(function () {
         }
     })
     $(document).on("keyup", function(event) {
-        let trigger = event.key
-        let id = triggerId(trigger)
+        let trigger = event.key,
+            id = triggerId(trigger)
         if (trigger == "Control" || trigger == "Command") {
             setTimeout(() => {
                 control = false
-                input.focus()
             }, 100)
         }
         else if (trigger == "Shift") {
@@ -189,21 +197,21 @@ $(document).ready(function () {
             read($("#" + id).html())
         }
     })
-    $(document).on("click", function() {
-        control = false
-        input.focus()
-    })
-    $(document).on("paste", function(event) {
+    $(document).on("paste", function() {
         for (i in keyDown)
             keyDown[i] = false
-        read(event.originalEvent.clipboardData.getData("text/plain"))
+        read(copied)
+    })
+    $(document).on("copy", function() {
+        copied = window.getSelection().toString()
+        navigator.clipboard.writeText(copied)
     })
 })
 
 // Allows cut command from context menu
 function cutContextMenu () {
-    let display = $('#display').html()
-    navigator.clipboard.writeText(display.slice(loc, endloc))
+    copied = window.getSelection().toString()
+    navigator.clipboard.writeText(copied)
     if (loc != endloc)
         read($("#backspace").html())
 }
@@ -218,6 +226,18 @@ $(document).on("pointerdown", function(event) {
         animate(id, "down")
 })
 $(document).on("pointerup", function(event) {
+    control = false
+    if (loc != endloc && event.which != 3) {
+        loc = endloc
+        input.setSelectionRange(loc, endloc)
+    }
+
+    loc = input.selectionStart
+    endloc = input.selectionEnd
+    
+    input.focus()
+    cursorPresent = true
+
     let id = triggerId(event.target.id)
     if (keyDown[id] == true) {
         keyDown[id] = false
@@ -295,16 +315,16 @@ function read(event) {
     // Calculates the parsed formula.
     // Recall - PEMDAS.
     function calculate (formula) {
-        let length = formula.length
-        let calculation = 0
+        let length = formula.length,
+            calculation = 0
         if (formula == "ERROR")
             return "ERROR"
         // Solve parentheses using recursion.
         let parenthesesSize = 0
         for (let i = 0; i < length; i++) {
             if (formula[i] == "(") {
-                let openCount = 1
-                let closedCount = 0
+                let openCount = 1,
+                    closedCount = 0
                 for (let j = i + 1; j < length; j++) {
                     if (formula[j] == "(")
                         openCount++
@@ -334,14 +354,9 @@ function read(event) {
                 return num
 
             // Counts number of digits after the decimal
-            let dec = false
-            let decDigitCount = 0
-            let nonZeroDecDigitCount = 0
-            let nonZeroIndex = -1
-            let tempNum = ""
-            let decIndex = -1
-            let eIndex = -1
-            let length = num.length
+            let dec = false, decDigitCount = 0, nonZeroDecDigitCount = 0,
+                nonZeroIndex = -1, tempNum = "", decIndex = -1, eIndex = -1,
+                length = num.length
 
             for (let i = 0; i < length; i++) {
                 if (num[i] == ".") {
@@ -377,9 +392,8 @@ function read(event) {
             if (tempNum != "") {
                 let tempNumLast = tempNum.length - 1
                 if (Number(tempNum[tempNumLast]) > 4){
-                    let newVal = tempNum.slice(nonZeroIndex, tempNumLast)
-                    let preRoundLen = 0
-                    let postRoundLen = 0
+                    let newVal = tempNum.slice(nonZeroIndex, tempNumLast),
+                        preRoundLen = 0, postRoundLen = 0,
                     tempNum = tempNum.slice(0, (decIndex + 1))
                     
                     preRoundLen = newVal.length
@@ -411,9 +425,7 @@ function read(event) {
                 eIndex = num.length - eQuantity.length
             }
 
-            let digitCount = 0
-            let fifteenIndex = -1
-            let sixteenIndex = -1
+            let digitCount = 0, fifteenIndex = -1, sixteenIndex = -1
             length = num.length
             for (let i = 0; i < length; i++) {
                 if (!isNaN(Number(num[i]))) {
@@ -428,16 +440,13 @@ function read(event) {
             if (decIndex != -1 && digitCount > 15 && eIndex == -1) {
                 if (decIndex < fifteenIndex) {
                     if (Number(num[sixteenIndex]) > 4) {
-                        let newVal = num.slice(nonZeroIndex, fifteenIndex + 1)
-                        let preRoundLen = 0
-                        let postRoundLen = 0
-                        let intNum = num.slice(0, (decIndex + 1))
+                        let newVal = num.slice(nonZeroIndex, fifteenIndex + 1), preRoundLen = 0, 
+                            postRoundLen = 0, intNum = num.slice(0, (decIndex + 1))
                         
                         preRoundLen = newVal.length
                         newVal = Number(newVal) + 1
                         newVal = newVal.toString()
                         postRoundLen = newVal.length
-                
                         
                         if (newVal.length > (fifteenIndex - decIndex)) {
                             newVal = ""
@@ -528,10 +537,8 @@ function read(event) {
 
         // Takes the 2 numbers in a given operation and truncates them both if they are both floating point values.
         function operationOfDecimals (num1, num2) {
-            let num1Len = num1.length
-            let num2Len = num2.length
-            let num1Dec = false
-            let num2Dec = false
+            let num1Len = num1.length, num2Len = num2.length, 
+                num1Dec = false, num2Dec = false
 
             for (let j = 0; j < num1Len; j++) {
                 if (num1[j] == ".") {
@@ -581,8 +588,7 @@ function read(event) {
         }
 
         // Solve additions and subtractions.
-        let sum = false
-        let sub = false
+        let sum = false, sub = false
         for (let i = 0; i < length; i++) {
             let nums = operationOfDecimals(calculation.toString(), formula[i])
             calculation = nums[0]
@@ -614,8 +620,7 @@ function read(event) {
     let completedFormula = "0" // Global variable that holds the parsed formula with completed paratheses
     // Parses the formula to be later solved.
     function parse (formula) {
-        let parsedFormula = [""]
-        let parsedFormulaIndex = 0
+        let parsedFormula = [""], parsedFormulaIndex = 0
 
         function next() {
             if (parsedFormula[parsedFormulaIndex] != "") {
@@ -624,14 +629,11 @@ function read(event) {
             }
         }
 
-        let parsedFormulaLen = parsedFormula.length
-        let length = formula.length
+        let parsedFormulaLen = parsedFormula.length, length = formula.length
         for (let i = 0; i < length; i++) {
             if (typeId(formula[i]) == 1) {
                 if (formula[i] == "%") {
-                    let percentageOfFormula = ""
-                    let percentageOperatorIndex = -1
-                    let closedCount = 0
+                    let percentageOfFormula = "", percentageOperatorIndex = -1, closedCount = 0
                     for (let j = i - 1; j >= 0; j--) {
                         if (j == (i - 1) && formula[j] == ")") {
                             percentageOperatorIndex = "pendingOpen"
@@ -688,8 +690,7 @@ function read(event) {
                     next()
                     if (parsedFormula[parsedFormulaIndex - 1] == ")") {
                         parsedFormulaLen = parsedFormula.length
-                        let closedCount = 0
-                        let openIndex = -1
+                        let closedCount = 0, openIndex = -1
                         for (let j = parsedFormulaLen - 1; j >= 0; j--) {
                             if (parsedFormula[j] == ")")
                                 closedCount++
@@ -752,8 +753,7 @@ function read(event) {
             } 
         }
 
-        let sumLeft = 0
-        let sumRight = 0
+        let sumLeft = 0, sumRight = 0
         parsedFormulaLen = parsedFormula.length
         for (let i = 0; i < parsedFormulaLen; i++) {
             if (parsedFormula[i] == "(")
@@ -780,14 +780,12 @@ function read(event) {
         
         // adds commas
         length = formula.length
-        let intNums = ""
-        let fancyFormula = ""
+        let intNums = "", fancyFormula = ""
         for (let i = 0; i < length; i++) {
             if (!isNaN(Number(formula[i])))
                 intNums = intNums + formula[i]
             if (typeId(formula[i]) == 0 || formula[i] == "%" || typeId(formula[i]) == 2|| i == length - 1 || formula[i] == "." || formula[i] == "e") {
-                let intNumsLen = intNums.length
-                let fancy = ""
+                let intNumsLen = intNums.length, fancy = ""
                 for (let k = intNumsLen - 4; k >= 0; k = k - 3) {
                     if (k == intNumsLen - 4)
                         fancy = "," + intNums.slice(k + 1) + fancy
@@ -802,9 +800,7 @@ function read(event) {
                 if (intNumsLen % 3 == 0)
                     fancy = intNums.slice(0, 3) + fancy
 
-                let end = ""
-                let j = i
-                let savedIndex = -1
+                let end = "", j = i, savedIndex = -1
                 if (formula[j] == ".") {
                     while (j < length && typeId(formula[j]) != 0 && formula[j] != "%" && typeId(formula[j]) != 2 && formula[j] != "e") {
                         end = end + formula[j]
@@ -860,8 +856,7 @@ function read(event) {
         length = formula.length
         for (let i = 0; i < length; i++) {
             if (formula[i] == "\n") {
-                let leftChars = 0
-                let rightChars = 0
+                let leftChars = 0, rightChars = 0
                 for (let j = i; j < length; j++) {
                     if (formula[j] == "\n" && j != i) 
                         break
@@ -890,8 +885,7 @@ function read(event) {
 
     // Checks if an operation exists and returns a boolean
     function operationPresent (formula){
-        let operationPresence = false
-        let length = formula.length
+        let operationPresence = false, length = formula.length
         for (let i = 0; i < length; i++) {
             if (formula[i] == "e") {
                 i++
@@ -931,8 +925,7 @@ function read(event) {
         $('#answerDisplay').html("= " + fancy(formula))
     }
 
-    let trigger = ""
-    let pastedTrigger = false
+    let trigger = "", pastedTrigger = false
     if (event.target == undefined) 
         trigger = event
     else 
@@ -967,13 +960,8 @@ function read(event) {
         return
     
     formula = $('#display').html()
-    let length = formula.length
-    let originalEndloc = endloc
-    let originalLoc = loc
-    
-    let nonFancyEndloc = endloc
-    let nonFancyLoc = loc
-    let nonFancy = ""
+    let length = formula.length, originalEndloc = endloc, originalLoc = loc,
+        nonFancyEndloc = endloc, nonFancyLoc = loc, nonFancy = ""
     if (recursionRun) {
         nonFancyEndloc = length
         nonFancyLoc = length
@@ -1015,8 +1003,7 @@ function read(event) {
             lastOperation = completedFormula
         }    
         if (operationPresence == false) {
-            let lastOperationLen = lastOperation.length
-            let closedCount = 0
+            let lastOperationLen = lastOperation.length, closedCount = 0
             for (let i = lastOperationLen - 1; i >= 0; i--) {
                 if (lastOperation[lastOperationLen - 1] == ")" || lastOperation.slice(lastOperationLen - 2) == ")%") {
                     if (lastOperation[i] == ")")
@@ -1043,8 +1030,7 @@ function read(event) {
             formula = testFormula
             operationPresence = true
         }
-        let preFormula
-        let postFormula
+        let preFormula, postFormula
         if (operationPresence || formula[length - 1] == "%") {
             formula = calculate(parse(formula))
             preFormula = completedFormula
@@ -1064,14 +1050,13 @@ function read(event) {
             if (lastHistOperation != preFormula) {
                 // Adds calculations to history container
                 function appendHistory (string) {
-                    let text
-                    let list = $("<li></li>")
-                    let button = $("<button name='button' id='histButton" + histCount + 
-                    "' type='button' style='font-size: 20px;width: 100%;height: 100%;border-radius: 0%;'></button>")
-                    let container = $('#listContainer')
-
-                    let stringLen = string.length
-                    let startOfChunk = 0
+                    let text, 
+                        list = $("<li></li>"), 
+                        button = $("<button name='button' id='histButton" + histCount + 
+                        "' type='button' style='font-size: 20px;width: 100%;height: 100%;border-radius: 0%;'></button>"),
+                        container = $('#listContainer'),
+                        stringLen = string.length,
+                        startOfChunk = 0
                     for (let i = 0; i < stringLen; i++) {
                         if (string[i] == "\n" && i < stringLen - 1) {
                             text = document.createTextNode(string.slice(startOfChunk, i))
@@ -1084,8 +1069,8 @@ function read(event) {
                     button.append(text)
                     list.append(button)
                     container.append(list)
-                    let id = "histButton" + histCount
-                    let element = container.children().last().children().first()[0]
+                    let id = "histButton" + histCount,
+                        element = container.children().last().children().first()[0]
                     savedBackground[id] = window.getComputedStyle(element, null).getPropertyValue("background-color")
                     savedColor[id] = window.getComputedStyle(element, null).getPropertyValue("color")
                     histCount++
@@ -1096,9 +1081,9 @@ function read(event) {
         }
     }
     else if (nonFancyLoc != length || pastedTrigger) {
-        let lastFormula = formula
-        let reverseIndex = lastFormula.length - nonFancyEndloc
-        let savedLoc = endloc
+        let lastFormula = formula, 
+            reverseIndex = lastFormula.length - nonFancyEndloc,
+            savedLoc = endloc
 
         let potentialFormula = "0" 
         if (nonFancyLoc != nonFancyEndloc) {
@@ -1225,8 +1210,8 @@ function read(event) {
             if (formula[length - 2] == "e")
                 return 1
         }
-        let sumLeft = 0
-        let sumRight = 0
+        let sumLeft = 0,
+            sumRight = 0
 
         
         for (let i = 0; i < length; i++) {
@@ -1359,8 +1344,8 @@ function read(event) {
                 formula = formula.slice(0, length - 1) + trigger
             else {
                 // Counts the digits in the last number in the formula
-                let digitCount = 0
-                let decDigitCount = 0
+                let digitCount = 0,
+                    decDigitCount = 0
                 // eDigitCount set to -1 to offset cases where e is the last element in the formula
                 let eDigitCount = -1
                 for (let i = length - 1; i >= 0; i--) {
@@ -1424,19 +1409,10 @@ function read(event) {
     return errorCode
 }
 
-// Gets text-cursor location when display is clicked on
-function focused() {
-    cursorPresent = true
-    $(document).on("mouseup", function() {
-        loc = input.selectionStart
-        endloc = input.selectionEnd
-    })
-}
-
 // Resizes the font based on content width
 function resize() {
-    let display = $('#display')[0]
-    let fontSize = 30
+    let display = $('#display')[0],
+        fontSize = 30
     display.style.fontSize = "30px"
     while (display.scrollWidth > display.clientWidth) {
         fontSize--
@@ -1526,9 +1502,9 @@ function animate (Id, pressDirection) {
         buttonDOM.style.backgroundColor = savedBackground[Id]
         return
     }
-    let backgroundColorLen = savedBackground[Id].length
-    let backgroundColorVal = [""]
-    let backgroundColorValIndex = 0
+    let backgroundColorLen = savedBackground[Id].length,
+        backgroundColorVal = [""],
+        backgroundColorValIndex = 0
     for (let i = 4; i < backgroundColorLen; i++) {
         if (!isNaN(Number(savedBackground[Id][i]))) 
             backgroundColorVal[backgroundColorValIndex] = backgroundColorVal[backgroundColorValIndex] + savedBackground[Id][i]
@@ -1540,9 +1516,9 @@ function animate (Id, pressDirection) {
     for (let i = 0; i < 3; i++) 
         backgroundColorVal[i] = Number(backgroundColorVal[i]) - 100
         
-    let colorLen = savedColor[Id].length
-    let colorVal = [""]
-    let colorValIndex = 0
+    let colorLen = savedColor[Id].length,
+        colorVal = [""],
+        colorValIndex = 0
     for (let i = 4; i < colorLen; i++) {
         if (!isNaN(Number(savedColor[Id][i]))) 
             colorVal[colorValIndex] = colorVal[colorValIndex] + savedColor[Id][i]
@@ -1567,8 +1543,8 @@ function typeId (value) {
             return 1
         if (value == "(" || value == ")") 
             return 2
-        let operators = ["×", "+", "÷", "/", "-", "*"]
-        let operatorsLen = operators.length
+        let operators = ["×", "+", "÷", "/", "-", "*"],
+            operatorsLen = operators.length
         for (let i = 0; i < operatorsLen; i++) {
             if (value == operators[i])
                 return 0
