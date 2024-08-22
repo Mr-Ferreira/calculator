@@ -203,6 +203,7 @@ $(document).ready(function () {
         read(copied)
     })
     $(document).on("copy", function() {
+        let display = $('#display').html()
         copied = display.slice(loc, endloc)
         navigator.clipboard.writeText(copied)
     })
@@ -210,6 +211,7 @@ $(document).ready(function () {
 
 // Allows cut command from context menu
 function cutContextMenu () {
+    let display = $('#display').html()
     copied = display.slice(loc, endloc)
     navigator.clipboard.writeText(copied)
     if (loc != endloc)
